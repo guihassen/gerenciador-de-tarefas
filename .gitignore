@@ -1,0 +1,8 @@
+node_modules/
+.env
+coverage/
+package-lock.json
+package.json
+
+
+postgresql://postgres.izocwqntslpeibcufrdt:Gui!2006@aws-0-us-east-2.pooler.supabase.com:6543/postgres
