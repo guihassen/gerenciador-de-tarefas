@@ -38,6 +38,7 @@ gerenciador-de-tarefas/
 ├── tests/               # Testes automatizados
 ├── views/               # Templates da interface do usuário
 ├── .env                 # Variáveis de ambiente
+├── .env.example
 ├── .gitignore           # Arquivos e pastas ignorados pelo Git
 ├── jest.config.js       # Configuração do Jest para testes
 ├── package-lock.json    # Lockfile do npm
