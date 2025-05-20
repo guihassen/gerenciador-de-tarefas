@@ -44,3 +44,9 @@ CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_projects_user_id ON projects(user_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_user_id ON tasks(user_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_project_id ON tasks(project_id);
+
+INSERT INTO users (full_name, username, profession, password_hash, email)
+VALUES
+  ('Alice Johnson', 'alicej', 'Software Engineer', 'hashed_password_1', 'alice@example.com'),
+  ('Bob Smith', 'bobsmith', 'Project Manager', 'hashed_password_2', 'bob@example.com')
+ON CONFLICT DO NOTHING;
