@@ -1,7 +1,12 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-// Defina suas rotas aqui
-router.get('/', (req, res) => {
-  res.send('Rota principal funcionando!');
+
+// Rota principal
+router.get("/", (req, res) => {
+  res.send("Rota principal funcionando!");
 });
+
+// Usa as rotas de usuário em /users
+router.use("/api", require("../routes/userRoutes.js"));
+
 module.exports = router;

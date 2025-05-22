@@ -1,4 +1,4 @@
-const express = require('express');
+const express = require("express");
 const app = express();
 const PORT = 3000;
 
@@ -6,8 +6,8 @@ const PORT = 3000;
 app.use(express.json());
 
 // Rotas
-const routes = require('./routes/index');
-app.use('/', routes);
+const routes = require("./routes/index");
+app.use("/", routes);
 
 // Inicializa o servidor
 app.listen(PORT, () => {

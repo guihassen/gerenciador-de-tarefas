@@ -1,67 +1,69 @@
-// services/userService.js
+// src/services/userService.js
+const userRepo = require("../repositories/userRepositories.js");
 
-const db = require('../config/db');
+/* Regras de domínio
+   ------------------
+   1. O nome não pode ser um reservado do sistema.
+   2. O e-mail deve pertencer a um domínio permitido.
+   3. Não pode haver dois usuários com o mesmo e-mail.
+*/
+const DOMINIOS_PERMITIDOS = ["empresa.com.br", "exemplo.com"];
+const NOMES_RESERVADOS = new Set(["admin", "root", "system"]);
 
-// Função para obter todos os usuários
-const getAllUsers = async () => {
-  try {
-    const result = await db.query('SELECT * FROM users');
-    return result.rows;
-  } catch (error) {
-    throw new Error('Erro ao obter usuários: ' + error.message);
+function validarNome(nome) {
+  if (NOMES_RESERVADOS.has(nome.toLowerCase())) {
+    throw new Error("Nome de usuário reservado.");
   }
-};
+}
 
-// Função para obter um usuário por ID
-const getUserById = async (id) => {
-  try {
-    const result = await db.query('SELECT * FROM users WHERE id = $1', [id]);
-    return result.rows[0];
-  } catch (error) {
-    throw new Error('Erro ao obter usuário: ' + error.message);
+function validarDominioEmail(email) {
+  const dominio = email.split("@")[1]?.toLowerCase();
+  if (!DOMINIOS_PERMITIDOS.includes(dominio)) {
+    throw new Error(`Domínio de e-mail não permitido: ${dominio}`);
   }
-};
+}
 
-// Função para criar um novo usuário
-const createUser = async (name, email) => {
-  try {
-    const result = await db.query(
-      'INSERT INTO users (name, email) VALUES ($1, $2) RETURNING *',
-      [name, email]
+function validarEmailUnico(email, ignorarId = null) {
+  const existente = userRepo
+    .findAll()
+    .find(
+      (u) => u.email.toLowerCase() === email.toLowerCase() && u.id !== ignorarId
     );
-    return result.rows[0];
-  } catch (error) {
-    throw new Error('Erro ao criar usuário: ' + error.message);
-  }
-};
-
-// Função para atualizar um usuário por ID
-const updateUser = async (id, name, email) => {
-  try {
-    const result = await db.query(
-      'UPDATE users SET name = $1, email = $2 WHERE id = $3 RETURNING *',
-      [name, email, id]
-    );
-    return result.rows[0];
-  } catch (error) {
-    throw new Error('Erro ao atualizar usuário: ' + error.message);
-  }
-};
-
-// Função para deletar um usuário por ID
-const deleteUser = async (id) => {
-  try {
-    const result = await db.query('DELETE FROM users WHERE id = $1 RETURNING *', [id]);
-    return result.rows[0];
-  } catch (error) {
-    throw new Error('Erro ao deletar usuário: ' + error.message);
-  }
-};
+  if (existente) throw new Error("E-mail já cadastrado.");
+}
 
 module.exports = {
-  getAllUsers,
-  getUserById,
-  createUser,
-  updateUser,
-  deleteUser
+  /* CRUD + join agregado */
+  create(payload) {
+    validarNome(payload.name);
+    validarDominioEmail(payload.email);
+    validarEmailUnico(payload.email);
+    return userRepo.create(payload);
+  },
+
+  list() {
+    return userRepo.findAll();
+  },
+
+  detail(id) {
+    return userRepo.findById(id);
+  },
+
+  update(id, payload) {
+    if (payload.name) validarNome(payload.name);
+    if (payload.email) {
+      validarDominioEmail(payload.email);
+      validarEmailUnico(payload.email, id);
+    }
+    return userRepo.update(id, payload);
+  },
+
+  remove(id) {
+    return userRepo.remove(id);
+  },
+
+  totals() {
+    /* join entre users e orders – soma total por usuário */
+    return userRepo.withOrderTotals();
+  },
 };
