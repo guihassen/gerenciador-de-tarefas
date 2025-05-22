@@ -22,34 +22,32 @@ function validarDominioEmail(email) {
     throw new Error(`Domínio de e-mail não permitido: ${dominio}`);
   }
 }
-
-function validarEmailUnico(email, ignorarId = null) {
-  const existente = userRepo
-    .findAll()
-    .find(
-      (u) => u.email.toLowerCase() === email.toLowerCase() && u.id !== ignorarId
-    );
+async function validarEmailUnico(email, ignorarId = null) {
+  const usuarios = await userRepo.findAll();
+  const existente = usuarios.find(
+    (u) => u.email.toLowerCase() === email.toLowerCase() && u.id !== ignorarId
+  );
   if (existente) throw new Error("E-mail já cadastrado.");
 }
 
 module.exports = {
   /* CRUD + join agregado */
-  create(payload) {
+  create: async (payload) => {
     validarNome(payload.name);
     validarDominioEmail(payload.email);
     validarEmailUnico(payload.email);
     return userRepo.create(payload);
   },
 
-  list() {
+  list: async () => {
     return userRepo.findAll();
   },
 
-  detail(id) {
+  detail: async (id) => {
     return userRepo.findById(id);
   },
 
-  update(id, payload) {
+  update: async (id, payload) => {
     if (payload.name) validarNome(payload.name);
     if (payload.email) {
       validarDominioEmail(payload.email);
@@ -58,11 +56,11 @@ module.exports = {
     return userRepo.update(id, payload);
   },
 
-  remove(id) {
+  remove: async (id) => {
     return userRepo.remove(id);
   },
 
-  totals() {
+  totals: async () => {
     /* join entre users e orders – soma total por usuário */
     return userRepo.withOrderTotals();
   },
