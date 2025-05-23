@@ -1,4 +1,6 @@
-const db = require("../config/db");
+// repositories/userRepository.js
+
+const db = require("../config/db.js");
 const schema = require("../models/userModel.js");
 
 async function validate(data) {
@@ -11,7 +13,8 @@ module.exports = {
   async create(user) {
     user = await validate(user);
     const result = await db.query(
-      `INSERT INTO users (full_name, username, profession, password_hash, email, is_active)
+      `INSERT INTO users 
+        (full_name, username, profession, password_hash, email, is_active)
        VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING id`,
       [
@@ -28,31 +31,28 @@ module.exports = {
 
   async findAll() {
     const result = await db.query(
-      `SELECT id, full_name, username, profession, email, is_active FROM users`
+      `SELECT id, full_name, username, profession, email, is_active 
+       FROM users`
     );
     return result.rows;
   },
 
   async findById(id) {
     const result = await db.query(
-      `SELECT id, full_name, username, profession, email, is_active
-       FROM users
+      `SELECT id, full_name, username, profession, email, is_active 
+       FROM users 
        WHERE id = $1`,
       [id]
     );
+    console.log("Resultado da query:", result.rows);
     return result.rows[0];
   },
 
   async update(id, payload) {
     payload = await validate(payload);
     await db.query(
-      `UPDATE users
-       SET full_name = $1,
-           username = $2,
-           profession = $3,
-           password_hash = $4,
-           email = $5,
-           is_active = $6
+      `UPDATE users 
+       SET full_name = $1, username = $2, profession = $3, password_hash = $4, email = $5, is_active = $6 
        WHERE id = $7`,
       [
         payload.full_name,
@@ -68,12 +68,12 @@ module.exports = {
   },
 
   async remove(id) {
-    await db.query(`DELETE FROM users WHERE id = $1`, [id]);
+    await db.query("DELETE FROM users WHERE id = $1", [id]);
   },
 
   async withOrderTotals() {
     const result = await db.query(`
-      SELECT u.id, u.full_name, u.username, u.email,
+      SELECT u.id, u.full_name, u.username, u.profession, u.email, u.is_active,
              COALESCE(SUM(o.price), 0) AS total
       FROM users u
       LEFT JOIN orders o ON o.user_id = u.id

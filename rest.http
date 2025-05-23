@@ -1,13 +1,37 @@
-# Teste da rota GET /users
+#
+GET http://localhost:3000/api/users
+Accept: application/json
+
+###
+GET http://localhost:3000/api/users/1
+Accept: application/json
+
+###
 POST http://localhost:3000/api/users
-Content-Type: : application/json
+Content-Type: application/json
 
 {
-    "full_name": "Tobias Viana",
-    "username": "TobiTeste",
-    "email" : "tobi@gmail.com"
+    "full_name": "Guilherme Hassenpflug",
+    "username": "guihassen",
+    "profession": "Software Developer",
+    "password_hash": "hashed_password_3",
+    "email": "guihassenpflug@empresa.com.br",
+    "is_active": true
+
 }
 
-##
-GET http://localhost:3000/api/users
+
+###
+PUT http://localhost:3000/api/users/15
+Content-Type: application/json
+
+{
+    "full_name": "Guilherme Bouabci",
+    "username": "hassengui"
+   
+}   
+
+
+###
+DELETE http://localhost:3000/api/users/15
 Accept: application/json
