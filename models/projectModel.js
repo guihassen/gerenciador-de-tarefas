@@ -1,4 +1,7 @@
-const projectSchema = Joi.object({
+const { pool } = require("../config/db.js");
+const Joi = require("joi");
+
+module.exports = Joi.object({
   id: Joi.number().integer().positive(),
   project_name: Joi.string().max(100).required(),
   description: Joi.string().allow("", null),

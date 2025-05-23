@@ -10,6 +10,24 @@ async function validate(data) {
 module.exports = {
   async create(task) {
     task = await validate(task);
+
+    // Verificar se o usuário existe
+    const userCheck = await db.query("SELECT id FROM users WHERE id = $1", [
+      task.user_id,
+    ]);
+    if (userCheck.rows.length === 0) {
+      throw new Error("User not found");
+    }
+
+    // Verificar se o projeto existe e pertence ao usuário
+    const projectCheck = await db.query(
+      "SELECT id FROM projects WHERE id = $1 AND user_id = $2",
+      [task.project_id, task.user_id]
+    );
+    if (projectCheck.rows.length === 0) {
+      throw new Error("Project not found or does not belong to user");
+    }
+
     const result = await db.query(
       `INSERT INTO tasks
         (task_name, task_description, due_date, due_time, has_notification, task_priority, is_completed, project_id, user_id)
@@ -48,8 +66,50 @@ module.exports = {
     return result.rows[0];
   },
 
+  // Buscar tarefas por usuário
+  async findByUserId(userId) {
+    const result = await db.query(
+      `SELECT id, task_name, task_description, due_date, due_time, has_notification, task_priority, is_completed, project_id, user_id
+       FROM tasks
+       WHERE user_id = $1
+       ORDER BY id DESC`,
+      [userId]
+    );
+    return result.rows;
+  },
+
+  // Buscar tarefas por projeto
+  async findByProjectId(projectId) {
+    const result = await db.query(
+      `SELECT id, task_name, task_description, due_date, due_time, has_notification, task_priority, is_completed, project_id, user_id
+       FROM tasks
+       WHERE project_id = $1
+       ORDER BY id DESC`,
+      [projectId]
+    );
+    return result.rows;
+  },
+
   async update(id, payload) {
     payload = await validate(payload);
+
+    // Verificar se o usuário existe
+    const userCheck = await db.query("SELECT id FROM users WHERE id = $1", [
+      payload.user_id,
+    ]);
+    if (userCheck.rows.length === 0) {
+      throw new Error("User not found");
+    }
+
+    // Verificar se o projeto existe e pertence ao usuário
+    const projectCheck = await db.query(
+      "SELECT id FROM projects WHERE id = $1 AND user_id = $2",
+      [payload.project_id, payload.user_id]
+    );
+    if (projectCheck.rows.length === 0) {
+      throw new Error("Project not found or does not belong to user");
+    }
+
     await db.query(
       `UPDATE tasks 
        SET task_name = $1,

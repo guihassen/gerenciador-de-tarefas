@@ -10,6 +10,15 @@ async function validate(data) {
 module.exports = {
   async create(project) {
     project = await validate(project);
+
+    // Verificar se o usuário existe
+    const userCheck = await db.query("SELECT id FROM users WHERE id = $1", [
+      project.user_id,
+    ]);
+    if (userCheck.rows.length === 0) {
+      throw new Error("User not found");
+    }
+
     const result = await db.query(
       `INSERT INTO projects
        (project_name, description, project_status, is_active, user_id)
@@ -46,6 +55,15 @@ module.exports = {
 
   async update(id, payload) {
     payload = await validate(payload);
+
+    // Verificar se o usuário existe
+    const userCheck = await db.query("SELECT id FROM users WHERE id = $1", [
+      payload.user_id,
+    ]);
+    if (userCheck.rows.length === 0) {
+      throw new Error("User not found");
+    }
+
     await db.query(
       `UPDATE projects
        SET project_name = $1,
@@ -64,6 +82,18 @@ module.exports = {
       ]
     );
     return this.findByID(id);
+  },
+
+  // Buscar projetos por usuário
+  async findByUserId(userId) {
+    const result = await db.query(
+      `SELECT id, project_name, description, project_status, is_active, user_id
+       FROM projects
+       WHERE user_id = $1
+       ORDER BY id DESC`,
+      [userId]
+    );
+    return result.rows;
   },
 
   async remove(id) {
