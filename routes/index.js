@@ -1,9 +1,10 @@
 const express = require("express");
+const path = require("path");
 const router = express.Router();
 
 // Rota principal
 router.get("/", (req, res) => {
-  res.send("Rota principal funcionando!");
+  res.render("pages/main");
 });
 
 // Usa as rotas de usuário em /api

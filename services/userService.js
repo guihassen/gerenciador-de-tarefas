@@ -1,65 +1,49 @@
-const taskRepo = require("../repositories/taskRepository.js");
-
-const PRIORIDADES_VALIDAS = new Set(["baixa", "média", "alta"]);
-
-function validarNomeTarefa(nome) {
-  if (!nome || nome.trim().length === 0) {
-    throw new Error("Nome da tarefa é obrigatório.");
-  }
-}
-
-function validarDataVencimento(data) {
-  const hoje = new Date();
-  const vencimento = new Date(data);
-  if (isNaN(vencimento.getTime())) {
-    throw new Error("Data de vencimento inválida.");
-  }
-  if (vencimento < hoje.setHours(0, 0, 0, 0)) {
-    throw new Error("A data de vencimento não pode estar no passado.");
-  }
-}
-
-function validarPrioridade(prioridade) {
-  if (prioridade && !PRIORIDADES_VALIDAS.has(prioridade.toLowerCase())) {
-    throw new Error("Prioridade inválida. Use: baixa, média ou alta.");
-  }
-}
+const userRepo = require("../repositories/userRepository.js");
 
 module.exports = {
   create: async (payload) => {
-    validarNomeTarefa(payload.task_name);
-    validarDataVencimento(payload.due_date);
-    validarPrioridade(payload.task_priority);
-
-    return taskRepo.create(payload);
+    if (!payload.name || payload.name.trim().length === 0) {
+      throw new Error("Nome do usuário é obrigatório.");
+    }
+    if (!payload.email || !payload.email.includes("@")) {
+      throw new Error("Email inválido.");
+    }
+    return userRepo.create(payload);
   },
 
   list: async () => {
-    return taskRepo.findAll();
+    return userRepo.findAll();
   },
 
   detail: async (id) => {
-    const task = await taskRepo.findByID(id);
-    if (!task) {
-      throw new Error("Tarefa não encontrada.");
+    const user = await userRepo.findById(id); // Alterado para findById
+    if (!user) {
+      throw new Error("Usuário não encontrado.");
     }
-    return task;
+    return user;
   },
 
   update: async (id, payload) => {
-    if (payload.task_name) validarNomeTarefa(payload.task_name);
-    if (payload.due_date) validarDataVencimento(payload.due_date);
-    if (payload.task_priority) validarPrioridade(payload.task_priority);
-
-    return taskRepo.update(id, payload);
+    if (payload.name && payload.name.trim().length === 0) {
+      throw new Error("Nome do usuário não pode ser vazio.");
+    }
+    if (payload.email && !payload.email.includes("@")) {
+      throw new Error("Email inválido.");
+    }
+    return userRepo.update(id, payload);
   },
 
   remove: async (id) => {
-    const task = await taskRepo.findByID(id);
-    if (!task) {
-      throw new Error("Tarefa não encontrada.");
+    const user = await userRepo.findById(id); // Alterado para findById
+    if (!user) {
+      throw new Error("Usuário não encontrado.");
     }
-    await taskRepo.remove(id);
-    return { message: `Tarefa com ID ${id} removida com sucesso.` };
+    await userRepo.remove(id);
+    return { message: `Usuário com ID ${id} removido com sucesso.` };
+  },
+
+  totals: async () => {
+    // Implemente esta função no userRepository se necessário
+    return userRepo.getTotals();
   },
 };

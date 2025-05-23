@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Documentação da API</title>
+    <style>
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        max-width: 800px;
+        margin: 2rem auto;
+        line-height: 1.6;
+      }
+      code {
+        background: #f4f4f4;
+        padding: 2px 4px;
+        border-radius: 3px;
+      }
+      h2 {
+        margin-top: 2.2rem;
+      }
+      .endpoint {
+        margin: 0.5rem 0;
+      }
+      .method {
+        font-weight: bold;
+        color: #2563eb;
+      }
+      .example {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-left: 4px solid #2563eb;
+        margin: 1rem 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>API de Gerenciamento de Tarefas</h1>
+    <p>
+      Esta aplicação expõe endpoints REST para gerenciar usuários, projetos e
+      tarefas em <code>/api/</code>. Todos os endpoints aceitam e devolvem JSON.
+    </p>
+
+    <h2>1. Usuários</h2>
+    <div class="endpoint">
+      <span class="method">GET /api/users</span> – lista todos os usuários.
+    </div>
+    <div class="endpoint">
+      <span class="method">POST /api/users</span> – cria um novo usuário.<br />
+      Exemplo de corpo:
+      <code>{"name":"João Silva","email":"joao@exemplo.com"}</code>
+    </div>
+    <div class="endpoint">
+      <span class="method">GET /api/users/:id</span> – obtém detalhes de um
+      usuário específico.
+    </div>
+    <div class="endpoint">
+      <span class="method">PUT /api/users/:id</span> – atualiza um usuário
+      existente.
+    </div>
+    <div class="endpoint">
+      <span class="method">DELETE /api/users/:id</span> – remove um usuário.
+    </div>
+    <div class="endpoint">
+      <span class="method">GET /api/users-totals</span> – retorna
+      estatísticas/totais dos usuários.
+    </div>
+
+    <h2>2. Projetos</h2>
+    <div class="endpoint">
+      <span class="method">GET /api/projects</span> – lista todos os projetos
+      (admin).
+    </div>
+    <div class="endpoint">
+      <span class="method">GET /api/users/:userId/projects</span> – lista
+      projetos de um usuário específico.
+    </div>
+    <div class="endpoint">
+      <span class="method">POST /api/users/:userId/projects</span> – cria um
+      novo projeto para um usuário.<br />
+      Exemplo:
+      <code
+        >{"name":"Projeto Website","description":"Desenvolvimento do site da
+        empresa"}</code
+      >
+    </div>
+    <div class="endpoint">
+      <span class="method">GET /api/users/:userId/projects/:id</span> – obtém
+      detalhes de um projeto específico.
+    </div>
+    <div class="endpoint">
+      <span class="method">PUT /api/users/:userId/projects/:id</span> – atualiza
+      um projeto existente.
+    </div>
+    <div class="endpoint">
+      <span class="method">DELETE /api/users/:userId/projects/:id</span> –
+      remove um projeto.
+    </div>
+    <div class="endpoint">
+      <span class="method"
+        >GET /api/users/:userId/projects/:projectId/tasks</span
+      >
+      – lista tarefas de um projeto específico.
+    </div>
+
+    <h2>3. Tarefas</h2>
+    <div class="endpoint">
+      <span class="method">GET /api/tasks</span> – lista todas as tarefas
+      (admin).
+    </div>
+    <div class="endpoint">
+      <span class="method">GET /api/users/:userId/tasks</span> – lista tarefas
+      de um usuário específico.
+    </div>
+    <div class="endpoint">
+      <span class="method">POST /api/users/:userId/tasks</span> – cria uma nova
+      tarefa para um usuário.<br />
+      Exemplo:
+      <code
+        >{"title":"Implementar login","description":"Criar sistema de
+        autenticação","project_id":1}</code
+      >
+    </div>
+    <div class="endpoint">
+      <span class="method">GET /api/users/:userId/tasks/:id</span> – obtém
+      detalhes de uma tarefa específica.
+    </div>
+    <div class="endpoint">
+      <span class="method">PUT /api/users/:userId/tasks/:id</span> – atualiza
+      uma tarefa existente.
+    </div>
+    <div class="endpoint">
+      <span class="method">DELETE /api/users/:userId/tasks/:id</span> – remove
+      uma tarefa.
+    </div>
+    <div class="endpoint">
+      <span class="method">PATCH /api/users/:userId/tasks/:id/complete</span> –
+      marca uma tarefa como concluída.
+    </div>
+    <div class="endpoint">
+      <span class="method">PATCH /api/users/:userId/tasks/:id/incomplete</span>
+      – marca uma tarefa como não concluída.
+    </div>
+
+    <h2>Exemplos de uso via <em>curl</em></h2>
+
+    <div class="example">
+      <h3>Criar um usuário:</h3>
+      <pre>
+curl -X POST http://localhost:3000/api/users \
+     -H "Content-Type: application/json" \
+     -d '{"name":"Maria Santos","email":"maria@exemplo.com"}'</pre
+      >
+    </div>
+
+    <div class="example">
+      <h3>Criar um projeto para o usuário ID 1:</h3>
+      <pre>
+curl -X POST http://localhost:3000/api/users/1/projects \
+     -H "Content-Type: application/json" \
+     -d '{"name":"E-commerce","description":"Loja virtual completa"}'</pre
+      >
+    </div>
+
+    <div class="example">
+      <h3>Criar uma tarefa para o usuário ID 1:</h3>
+      <pre>
+curl -X POST http://localhost:3000/api/users/1/tasks \
+     -H "Content-Type: application/json" \
+     -d '{"title":"Design da homepage","description":"Criar mockup da página inicial","project_id":1}'</pre
+      >
+    </div>
+
+    <div class="example">
+      <h3>Marcar tarefa como concluída:</h3>
+      <pre>
+curl -X PATCH http://localhost:3000/api/users/1/tasks/1/complete</pre
+      >
+    </div>
+
+    <div class="example">
+      <h3>Listar projetos de um usuário:</h3>
+      <pre>curl http://localhost:3000/api/users/1/projects</pre>
+    </div>
+
+    <div class="example">
+      <h3>Listar tarefas de um projeto:</h3>
+      <pre>curl http://localhost:3000/api/users/1/projects/1/tasks</pre>
+    </div>
+
+    <h2>Estrutura da API</h2>
+    <p>A API segue uma estrutura hierárquica onde:</p>
+    <ul>
+      <li><strong>Usuários</strong> podem ter múltiplos projetos</li>
+      <li>
+        <strong>Projetos</strong> pertencem a um usuário e podem ter múltiplas
+        tarefas
+      </li>
+      <li>
+        <strong>Tarefas</strong> pertencem a um usuário e opcionalmente a um
+        projeto
+      </li>
+    </ul>
+
+    <p>
+      <strong>Nota:</strong> Substitua <code>:userId</code>, <code>:id</code>,
+      <code>:projectId</code> pelos valores numéricos correspondentes nas URLs.
+    </p>
+  </body>
+</html>
