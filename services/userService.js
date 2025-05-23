@@ -1,70 +1,65 @@
-// src/services/userService.js
-const userRepo = require("../repositories/userRepository.js");
+const taskRepo = require("../repositories/taskRepository.js");
 
-/* Regras de domínio atualizadas */
-const DOMINIOS_PERMITIDOS = ["empresa.com.br", "exemplo.com"];
-const NOMES_RESERVADOS = new Set(["admin", "root", "system"]);
+const PRIORIDADES_VALIDAS = new Set(["baixa", "média", "alta"]);
 
-function validarNome(full_name) {
-  if (!full_name) {
-    throw new Error("Nome completo é obrigatório.");
-  }
-  if (NOMES_RESERVADOS.has(full_name.toLowerCase())) {
-    throw new Error("Nome de usuário reservado.");
+function validarNomeTarefa(nome) {
+  if (!nome || nome.trim().length === 0) {
+    throw new Error("Nome da tarefa é obrigatório.");
   }
 }
 
-function validarDominioEmail(email) {
-  if (!email) throw new Error("E-mail é obrigatório");
-  const dominio = email.split("@")[1]?.toLowerCase();
-  if (!DOMINIOS_PERMITIDOS.includes(dominio)) {
-    throw new Error(`Domínio de e-mail não permitido: ${dominio}`);
+function validarDataVencimento(data) {
+  const hoje = new Date();
+  const vencimento = new Date(data);
+  if (isNaN(vencimento.getTime())) {
+    throw new Error("Data de vencimento inválida.");
+  }
+  if (vencimento < hoje.setHours(0, 0, 0, 0)) {
+    throw new Error("A data de vencimento não pode estar no passado.");
   }
 }
 
-async function validarEmailUnico(email, ignorarId = null) {
-  const usuarios = await userRepo.findAll();
-  const existente = usuarios.find(
-    (u) => u.email.toLowerCase() === email.toLowerCase() && u.id !== ignorarId
-  );
-  if (existente) throw new Error("E-mail já cadastrado.");
+function validarPrioridade(prioridade) {
+  if (prioridade && !PRIORIDADES_VALIDAS.has(prioridade.toLowerCase())) {
+    throw new Error("Prioridade inválida. Use: baixa, média ou alta.");
+  }
 }
 
 module.exports = {
   create: async (payload) => {
-    validarNome(payload.full_name); // Alterado para full_name
-    validarDominioEmail(payload.email);
-    await validarEmailUnico(payload.email);
-    return userRepo.create(payload);
+    validarNomeTarefa(payload.task_name);
+    validarDataVencimento(payload.due_date);
+    validarPrioridade(payload.task_priority);
+
+    return taskRepo.create(payload);
   },
 
   list: async () => {
-    return userRepo.findAll();
+    return taskRepo.findAll();
   },
 
   detail: async (id) => {
-    return userRepo.findById(id);
+    const task = await taskRepo.findByID(id);
+    if (!task) {
+      throw new Error("Tarefa não encontrada.");
+    }
+    return task;
   },
 
   update: async (id, payload) => {
-    if (payload.full_name) validarNome(payload.full_name); // Alterado para full_name
-    if (payload.email) {
-      validarDominioEmail(payload.email);
-      await validarEmailUnico(payload.email, id);
-    }
-    return userRepo.update(id, payload);
+    if (payload.task_name) validarNomeTarefa(payload.task_name);
+    if (payload.due_date) validarDataVencimento(payload.due_date);
+    if (payload.task_priority) validarPrioridade(payload.task_priority);
+
+    return taskRepo.update(id, payload);
   },
 
   remove: async (id) => {
-    const user = await userRepo.findById(id); // Corrigido: use userRepo diretamente
-    if (!user) {
-      throw new Error("Usuário não encontrado");
+    const task = await taskRepo.findByID(id);
+    if (!task) {
+      throw new Error("Tarefa não encontrada.");
     }
-    await userRepo.remove(id);
-    return { message: `Usuário com ID ${id} removido` };
-  },
-
-  totals: async () => {
-    return userRepo.withOrderTotals();
+    await taskRepo.remove(id);
+    return { message: `Tarefa com ID ${id} removida com sucesso.` };
   },
 };

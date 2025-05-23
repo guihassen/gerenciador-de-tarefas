@@ -70,15 +70,4 @@ module.exports = {
   async remove(id) {
     await db.query("DELETE FROM users WHERE id = $1", [id]);
   },
-
-  async withOrderTotals() {
-    const result = await db.query(`
-      SELECT u.id, u.full_name, u.username, u.profession, u.email, u.is_active,
-             COALESCE(SUM(o.price), 0) AS total
-      FROM users u
-      LEFT JOIN orders o ON o.user_id = u.id
-      GROUP BY u.id
-    `);
-    return result.rows;
-  },
 };
