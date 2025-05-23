@@ -207,3 +207,138 @@ curl -X PATCH http://localhost:3000/api/users/1/tasks/1/complete</pre
     </p>
   </body>
 </html>
+
+<h1 id="c3">3. Uso da API</h1>
+
+<p>
+  A aplicação expõe uma API RESTful para gerenciar usuários, projetos e tarefas.
+  Todos os endpoints estão disponíveis sob o caminho base <code>/api/</code> e
+  trabalham com requisições e respostas no formato JSON.
+</p>
+
+<h2>3.1. Usuários</h2>
+<ul>
+  <li><strong>GET /api/users</strong> – Lista todos os usuários.</li>
+  <li>
+    <strong>POST /api/users</strong> – Cria um novo usuário.<br />
+    Exemplo de corpo:
+    <pre><code>{
+  "name": "João Silva",
+  "email": "joao@exemplo.com"
+}</code></pre>
+  </li>
+  <li><strong>GET /api/users/:id</strong> – Detalha um usuário.</li>
+  <li><strong>PUT /api/users/:id</strong> – Atualiza um usuário.</li>
+  <li><strong>DELETE /api/users/:id</strong> – Remove um usuário.</li>
+  <li><strong>GET /api/users-totals</strong> – Estatísticas de usuários.</li>
+</ul>
+
+<h2>3.2. Projetos</h2>
+<ul>
+  <li><strong>GET /api/projects</strong> – Lista todos os projetos (admin).</li>
+  <li>
+    <strong>GET /api/users/:userId/projects</strong> – Lista projetos do
+    usuário.
+  </li>
+  <li>
+    <strong>POST /api/users/:userId/projects</strong> – Cria um novo projeto.<br />
+    Exemplo:
+    <pre><code>{
+  "name": "Projeto Website",
+  "description": "Desenvolvimento do site da empresa"
+}</code></pre>
+  </li>
+  <li>
+    <strong>GET /api/users/:userId/projects/:id</strong> – Detalha um projeto.
+  </li>
+  <li>
+    <strong>PUT /api/users/:userId/projects/:id</strong> – Atualiza um projeto.
+  </li>
+  <li>
+    <strong>DELETE /api/users/:userId/projects/:id</strong> – Remove um projeto.
+  </li>
+  <li>
+    <strong>GET /api/users/:userId/projects/:projectId/tasks</strong> – Lista
+    tarefas de um projeto.
+  </li>
+</ul>
+
+<h2>3.3. Tarefas</h2>
+<ul>
+  <li><strong>GET /api/tasks</strong> – Lista todas as tarefas (admin).</li>
+  <li>
+    <strong>GET /api/users/:userId/tasks</strong> – Lista tarefas do usuário.
+  </li>
+  <li>
+    <strong>POST /api/users/:userId/tasks</strong> – Cria nova tarefa.<br />
+    Exemplo:
+    <pre><code>{
+  "title": "Implementar login",
+  "description": "Criar sistema de autenticação",
+  "project_id": 1
+}</code></pre>
+  </li>
+  <li>
+    <strong>GET /api/users/:userId/tasks/:id</strong> – Detalha uma tarefa.
+  </li>
+  <li>
+    <strong>PUT /api/users/:userId/tasks/:id</strong> – Atualiza uma tarefa.
+  </li>
+  <li>
+    <strong>DELETE /api/users/:userId/tasks/:id</strong> – Remove uma tarefa.
+  </li>
+  <li>
+    <strong>PATCH /api/users/:userId/tasks/:id/complete</strong> – Marca como
+    concluída.
+  </li>
+  <li>
+    <strong>PATCH /api/users/:userId/tasks/:id/incomplete</strong> – Marca como
+    não concluída.
+  </li>
+</ul>
+
+<h2>3.4. Exemplos com <em>curl</em></h2>
+<pre><code># Criar um usuário
+curl -X POST http://localhost:3000/api/users \
+     -H "Content-Type: application/json" \
+     -d '{"name":"Maria Santos","email":"maria@exemplo.com"}'
+
+# Criar projeto para o usuário ID 1
+curl -X POST http://localhost:3000/api/users/1/projects \
+     -H "Content-Type: application/json" \
+     -d '{"name":"E-commerce","description":"Loja virtual completa"}'
+
+# Criar tarefa para o usuário ID 1
+curl -X POST http://localhost:3000/api/users/1/tasks \
+     -H "Content-Type: application/json" \
+     -d '{"title":"Design da homepage","description":"Criar mockup da página inicial","project_id":1}'
+
+# Marcar tarefa como concluída
+curl -X PATCH http://localhost:3000/api/users/1/tasks/1/complete
+
+# Listar projetos de um usuário
+curl http://localhost:3000/api/users/1/projects
+
+# Listar tarefas de um projeto
+curl http://localhost:3000/api/users/1/projects/1/tasks
+</code></pre>
+
+<h2>3.5. Estrutura da API</h2>
+<ul>
+  <li>
+    <strong>Usuários</strong> podem ter múltiplos <strong>projetos</strong>.
+  </li>
+  <li>
+    <strong>Projetos</strong> pertencem a um usuário e têm várias
+    <strong>tarefas</strong>.
+  </li>
+  <li>
+    <strong>Tarefas</strong> pertencem a um usuário e, opcionalmente, a um
+    projeto.
+  </li>
+</ul>
+
+<p>
+  <strong>Nota:</strong> Substitua <code>:userId</code>, <code>:id</code> e
+  <code>:projectId</code> pelos valores reais nas URLs.
+</p>
