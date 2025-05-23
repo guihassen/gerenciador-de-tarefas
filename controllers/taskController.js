@@ -1,217 +1,102 @@
-const taskRepository = require("../repositories/taskRepository.js");
+const svc = require("../services/taskService");
 
-module.exports = {
-  // Criar nova tarefa
-  async create(req, res) {
-    try {
-      const task = await taskRepository.create(req.body);
-      res.status(201).json({
-        success: true,
-        message: "Task created successfully",
-        data: task,
-      });
-    } catch (error) {
-      res.status(400).json({
-        success: false,
-        message: error.message,
-      });
+exports.create = async (req, res) => {
+  try {
+    const newTask = await svc.create(req.body);
+    console.log("Tarefa Criada:", newTask);
+    res.status(201).json(newTask);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+};
+
+exports.list = async (_, res) => {
+  try {
+    const tasks = await svc.list();
+    console.log("Tarefas retornadas:", tasks);
+    res.json(tasks);
+  } catch (e) {
+    console.error("Erro ao listar tarefas:", e);
+    res.status(500).json({ error: e.message });
+  }
+};
+
+exports.detail = async (req, res) => {
+  try {
+    const task = await svc.detail(req.params.id);
+    console.log("Tarefa encontrada:", task);
+    if (!task) {
+      return res.status(404).json({ error: "Tarefa não encontrada" });
     }
-  },
+    res.json(task);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+};
 
-  // Buscar todas as tarefas
-  async findAll(req, res) {
-    try {
-      const tasks = await taskRepository.findAll();
-      res.status(200).json({
-        success: true,
-        data: tasks,
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: error.message,
-      });
-    }
-  },
+exports.findByUserId = async (req, res) => {
+  try {
+    const tasks = await svc.findByUserId(req.params.userId);
+    console.log("Tarefas do usuário:", tasks);
+    res.json(tasks);
+  } catch (e) {
+    console.error("Erro ao buscar tarefas do usuário:", e);
+    res.status(500).json({ error: e.message });
+  }
+};
 
-  // Buscar tarefa por ID
-  async findByID(req, res) {
-    try {
-      const { id } = req.params;
-      const task = await taskRepository.findByID(id);
+exports.findByProjectId = async (req, res) => {
+  try {
+    const tasks = await svc.findByProjectId(req.params.projectId);
+    console.log("Tarefas do projeto:", tasks);
+    res.json(tasks);
+  } catch (e) {
+    console.error("Erro ao buscar tarefas do projeto:", e);
+    res.status(500).json({ error: e.message });
+  }
+};
 
-      if (!task) {
-        return res.status(404).json({
-          success: false,
-          message: "Task not found",
-        });
-      }
+exports.update = async (req, res) => {
+  try {
+    const updatedTask = await svc.update(req.params.id, req.body);
+    console.log("Tarefa atualizada:", updatedTask);
+    res.json(updatedTask);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+};
 
-      res.status(200).json({
-        success: true,
-        data: task,
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: error.message,
-      });
-    }
-  },
+exports.remove = async (req, res) => {
+  try {
+    const id = req.params.id;
+    console.log(`Removendo tarefa com ID: ${id}`);
+    await svc.remove(id);
+    console.log(`Tarefa com ID ${id} removida com sucesso`);
+    res.sendStatus(204);
+  } catch (e) {
+    console.error("Erro ao remover tarefa:", e);
+    res.status(500).json({ error: e.message });
+  }
+};
 
-  // Buscar tarefas por usuário
-  async findByUserId(req, res) {
-    try {
-      const { userId } = req.params;
-      const tasks = await taskRepository.findByUserId(userId);
+exports.markAsCompleted = async (req, res) => {
+  try {
+    const updatedTask = await svc.markAsCompleted(req.params.id);
+    console.log("Tarefa marcada como concluída:", updatedTask);
+    res.json(updatedTask);
+  } catch (e) {
+    console.error("Erro ao marcar tarefa como concluída:", e);
+    res.status(400).json({ error: e.message });
+  }
+};
 
-      res.status(200).json({
-        success: true,
-        data: tasks,
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: error.message,
-      });
-    }
-  },
-
-  // Buscar tarefas por projeto
-  async findByProjectId(req, res) {
-    try {
-      const { projectId } = req.params;
-      const tasks = await taskRepository.findByProjectId(projectId);
-
-      res.status(200).json({
-        success: true,
-        data: tasks,
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: error.message,
-      });
-    }
-  },
-
-  // Atualizar tarefa
-  async update(req, res) {
-    try {
-      const { id } = req.params;
-      const task = await taskRepository.update(id, req.body);
-
-      if (!task) {
-        return res.status(404).json({
-          success: false,
-          message: "Task not found",
-        });
-      }
-
-      res.status(200).json({
-        success: true,
-        message: "Task updated successfully",
-        data: task,
-      });
-    } catch (error) {
-      res.status(400).json({
-        success: false,
-        message: error.message,
-      });
-    }
-  },
-
-  // Remover tarefa
-  async remove(req, res) {
-    try {
-      const { id } = req.params;
-
-      // Verificar se a tarefa existe antes de remover
-      const existingTask = await taskRepository.findByID(id);
-      if (!existingTask) {
-        return res.status(404).json({
-          success: false,
-          message: "Task not found",
-        });
-      }
-
-      await taskRepository.remove(id);
-
-      res.status(200).json({
-        success: true,
-        message: "Task removed successfully",
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: error.message,
-      });
-    }
-  },
-
-  // Marcar tarefa como concluída
-  async markAsCompleted(req, res) {
-    try {
-      const { id } = req.params;
-
-      // Buscar tarefa atual
-      const currentTask = await taskRepository.findByID(id);
-      if (!currentTask) {
-        return res.status(404).json({
-          success: false,
-          message: "Task not found",
-        });
-      }
-
-      // Atualizar apenas o status de conclusão
-      const updatedTask = await taskRepository.update(id, {
-        ...currentTask,
-        is_completed: true,
-      });
-
-      res.status(200).json({
-        success: true,
-        message: "Task marked as completed",
-        data: updatedTask,
-      });
-    } catch (error) {
-      res.status(400).json({
-        success: false,
-        message: error.message,
-      });
-    }
-  },
-
-  // Marcar tarefa como não concluída
-  async markAsIncomplete(req, res) {
-    try {
-      const { id } = req.params;
-
-      // Buscar tarefa atual
-      const currentTask = await taskRepository.findByID(id);
-      if (!currentTask) {
-        return res.status(404).json({
-          success: false,
-          message: "Task not found",
-        });
-      }
-
-      // Atualizar apenas o status de conclusão
-      const updatedTask = await taskRepository.update(id, {
-        ...currentTask,
-        is_completed: false,
-      });
-
-      res.status(200).json({
-        success: true,
-        message: "Task marked as incomplete",
-        data: updatedTask,
-      });
-    } catch (error) {
-      res.status(400).json({
-        success: false,
-        message: error.message,
-      });
-    }
-  },
+exports.markAsIncomplete = async (req, res) => {
+  try {
+    const updatedTask = await svc.markAsIncomplete(req.params.id);
+    console.log("Tarefa marcada como não concluída:", updatedTask);
+    res.json(updatedTask);
+  } catch (e) {
+    console.error("Erro ao marcar tarefa como não concluída:", e);
+    res.status(400).json({ error: e.message });
+  }
 };

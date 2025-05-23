@@ -1,3 +1,4 @@
+# ===== USERS =====
 #
 GET http://localhost:3000/api/users
 Accept: application/json
@@ -20,10 +21,100 @@ Content-Type: application/json
 
 }
 
-
-###
-
-
 ###
 DELETE http://localhost:3000/api/users/15
 Accept: application/json
+
+
+# ===== PROJETOS =====
+
+### Criar projeto para um usuário
+POST http://localhost:3000/api/users/1/projects
+Content-Type: application/json
+
+{
+  "project_name": "Sistema de Gestão",
+  "description": "Sistema completo para gestão de tarefas e projetos",
+  "project_status": "ativo",
+  "is_active": true,
+  "user_id": 1
+}
+
+### Listar projetos de um usuário
+GET http://localhost:3000/api/users/1/projects
+
+### Buscar projeto específico
+GET http://localhost:3000/api/users/1/projects/1
+
+### Atualizar projeto
+PUT http://localhost:3000/api/users/1/projects/1
+Content-Type: application/json
+
+{
+  "project_name": "Sistema de Gestão Avançado",
+  "description": "Sistema completo para gestão de tarefas, projetos e relatórios",
+  "project_status": "ativo",
+  "is_active": true,
+  "user_id": 1
+}
+
+### Remover projeto
+DELETE http://localhost:3000/api/users/1/projects/1
+
+### Listar todos os projetos (admin)
+GET http://localhost:3000/api/projects
+
+# ===== TAREFAS =====
+
+### Criar tarefa para um usuário
+POST http://localhost:3000/api/users/1/tasks
+Content-Type: application/json
+
+{
+  "task_name": "Implementar autenticação",
+  "task_description": "Criar sistema de login e autenticação JWT",
+  "due_date": "2025-06-01",
+  "due_time": "18:00:00",
+  "has_notification": true,
+  "task_priority": "alta",
+  "is_completed": false,
+  "project_id": 1,
+  "user_id": 1
+}
+
+### Listar tarefas de um usuário
+GET http://localhost:3000/api/users/1/tasks
+
+### Buscar tarefa específica
+GET http://localhost:3000/api/users/1/tasks/1
+
+### Atualizar tarefa
+PUT http://localhost:3000/api/users/1/tasks/1
+Content-Type: application/json
+
+{
+  "task_name": "Implementar autenticação JWT",
+  "task_description": "Criar sistema completo de login, registro e autenticação JWT",
+  "due_date": "2025-06-05",
+  "due_time": "17:00:00",
+  "has_notification": true,
+  "task_priority": "alta",
+  "is_completed": false,
+  "project_id": 1,
+  "user_id": 1
+}
+
+### Marcar tarefa como concluída
+PATCH http://localhost:3000/api/users/1/tasks/1/complete
+
+### Marcar tarefa como não concluída
+PATCH http://localhost:3000/api/users/1/tasks/1/incomplete
+
+### Remover tarefa
+DELETE http://localhost:3000/api/users/1/tasks/1
+
+### Listar todas as tarefas (admin)
+GET http://localhost:3000/api/tasks
+
+### Listar tarefas de um projeto específico
+GET http://localhost:3000/api/users/1/projects/1/tasks
