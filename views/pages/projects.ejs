@@ -72,11 +72,11 @@
                 <span class="stat-label">Concluídos</span>
               </div>
             </div>
-            <div class="stat-card stat-overdue">
-              <div class="stat-icon">⏰</div>
+            <div class="stat-card stat-paused">
+              <div class="stat-icon">⏸️</div>
               <div class="stat-info">
-                <span class="stat-number" id="overdue-projects">0</span>
-                <span class="stat-label">Atrasados</span>
+                <span class="stat-number" id="paused-projects">0</span>
+                <span class="stat-label">Pausados</span>
               </div>
             </div>
           </div>
@@ -140,7 +140,7 @@
         </div>
 
         <form id="project-form" class="project-form">
-          <input type="hidden" id="project-id" name="project_id" />
+          <input type="hidden" id="project-id" name="id" />
 
           <div class="form-group">
             <label for="project-name">Nome do Projeto *</label>
@@ -149,6 +149,7 @@
               id="project-name"
               name="project_name"
               required
+              maxlength="100"
               placeholder="Digite o nome do projeto"
             />
           </div>
@@ -157,26 +158,19 @@
             <label for="project-description">Descrição</label>
             <textarea
               id="project-description"
-              name="project_description"
+              name="description"
               rows="4"
               placeholder="Descreva os objetivos e detalhes do projeto (opcional)"
             ></textarea>
           </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label for="project-status">Status</label>
-              <select id="project-status" name="project_status">
-                <option value="ativo">Ativo</option>
-                <option value="pausado">Pausado</option>
-                <option value="concluido">Concluído</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="end-date">Data de Conclusão</label>
-              <input type="date" id="end-date" name="end_date" />
-            </div>
+          <div class="form-group">
+            <label for="project-status">Status</label>
+            <select id="project-status" name="project_status" required>
+              <option value="ativo">Ativo</option>
+              <option value="pausado">Pausado</option>
+              <option value="concluido">Concluído</option>
+            </select>
           </div>
 
           <div class="form-actions">
@@ -211,7 +205,7 @@
 
     <script>
       // Variáveis globais
-      const userId = window.location.pathname.split("/")[2]; // /users/2/projects -> userId = 2
+      const userId = window.location.pathname.split("/")[2]; // /users/1/projects -> userId = 1
       let currentUser = null;
       let allProjects = [];
       let filteredProjects = [];
@@ -279,7 +273,6 @@
             showEmptyState();
           } else {
             filteredProjects = [...allProjects];
-            await loadProjectsWithTaskCounts();
             renderStats();
             renderProjects();
             showProjectsContent();
@@ -290,71 +283,23 @@
         }
       }
 
-      // Carregar projetos com contagem de tarefas
-      async function loadProjectsWithTaskCounts() {
-        const projectsWithTasks = await Promise.all(
-          allProjects.map(async (project) => {
-            try {
-              const tasksResponse = await fetch(
-                `/api/users/${userId}/projects/${project.id}/tasks`
-              );
-              if (tasksResponse.ok) {
-                const tasks = await tasksResponse.json();
-                const completedTasks = tasks.filter(
-                  (task) => task.is_completed
-                ).length;
-                return {
-                  ...project,
-                  totalTasks: tasks.length,
-                  completedTasks: completedTasks,
-                  progress:
-                    tasks.length > 0
-                      ? Math.round((completedTasks / tasks.length) * 100)
-                      : 0,
-                };
-              }
-            } catch (error) {
-              console.error(
-                `Erro ao carregar tarefas do projeto ${project.id}:`,
-                error
-              );
-            }
-            return {
-              ...project,
-              totalTasks: 0,
-              completedTasks: 0,
-              progress: 0,
-            };
-          })
-        );
-
-        allProjects = projectsWithTasks;
-        filteredProjects = [...allProjects];
-      }
-
       // Renderizar estatísticas
       function renderStats() {
         const total = allProjects.length;
         const active = allProjects.filter(
-          (project) => project.project_status === "ativo"
+          (project) => project.project_status === "ativo" && project.is_active
         ).length;
         const completed = allProjects.filter(
           (project) => project.project_status === "concluido"
         ).length;
-
-        // Calcular projetos atrasados (que têm data de fim passada e não estão concluídos)
-        const today = new Date();
-        const overdue = allProjects.filter((project) => {
-          if (project.project_status === "concluido" || !project.end_date)
-            return false;
-          const endDate = new Date(project.end_date);
-          return endDate < today;
-        }).length;
+        const paused = allProjects.filter(
+          (project) => project.project_status === "pausado"
+        ).length;
 
         animateNumber("total-projects", total);
         animateNumber("active-projects", active);
         animateNumber("completed-projects", completed);
-        animateNumber("overdue-projects", overdue);
+        animateNumber("paused-projects", paused);
       }
 
       // Animar números
@@ -401,17 +346,11 @@
         const projectCard = document.createElement("div");
         projectCard.className = `project-card ${
           project.project_status === "concluido" ? "completed" : ""
-        }`;
+        } ${!project.is_active ? "inactive" : ""}`;
         projectCard.setAttribute("data-project-id", project.id);
 
         const statusClass = getStatusClass(project.project_status);
         const statusText = getStatusText(project.project_status);
-
-        // Verificar se o projeto está atrasado
-        const isOverdue =
-          project.end_date &&
-          new Date(project.end_date) < new Date() &&
-          project.project_status !== "concluido";
 
         projectCard.innerHTML = `
           <div class="project-header">
@@ -422,59 +361,20 @@
                 <span>${statusText}</span>
               </div>
             </div>
-          </div>
-          
-          ${
-            project.project_description
-              ? `<p class="project-description">${project.project_description}</p>`
-              : ""
-          }
-          
-          <div class="project-details">
             ${
-              project.end_date
-                ? `
-              <div class="project-date ${isOverdue ? "overdue" : ""}">
-                <span class="date-icon">${isOverdue ? "⚠️" : "📅"}</span>
-                <span>${formatDate(project.end_date)}${
-                    isOverdue ? " (Atrasado)" : ""
-                  }</span>
-              </div>
-            `
+              !project.is_active
+                ? '<div class="inactive-badge">Inativo</div>'
                 : ""
             }
-            
-            <div class="project-tasks-count">
-              <span class="tasks-icon">📋</span>
-              <span>${project.totalTasks || 0} tarefa(s) • ${
-          project.completedTasks || 0
-        } concluída(s)</span>
-            </div>
           </div>
-
+          
           ${
-            project.totalTasks > 0
-              ? `
-          <div class="project-progress">
-            <div class="progress-label">
-              <span>Progresso</span>
-              <span>${project.progress}%</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: ${project.progress}%"></div>
-            </div>
-          </div>
-          `
+            project.description
+              ? `<p class="project-description">${project.description}</p>`
               : ""
           }
           
           <div class="project-actions">
-            <button class="action-btn view-btn" onclick="viewProjectTasks(${
-              project.id
-            })" title="Ver tarefas">
-              <span>👁️</span>
-              <span>Ver Tarefas</span>
-            </button>
             <button class="action-btn edit-btn" onclick="editProject(${
               project.id
             })" title="Editar">
@@ -487,6 +387,17 @@
               <span>🗑️</span>
               <span>Excluir</span>
             </button>
+            ${
+              project.is_active
+                ? `<button class="action-btn deactivate-btn" onclick="toggleProjectStatus(${project.id}, false)" title="Desativar">
+                <span>⏸️</span>
+                <span>Desativar</span>
+              </button>`
+                : `<button class="action-btn activate-btn" onclick="toggleProjectStatus(${project.id}, true)" title="Ativar">
+                <span>▶️</span>
+                <span>Ativar</span>
+              </button>`
+            }
           </div>
         `;
 
@@ -521,17 +432,6 @@
         return icons[status] || "🚀";
       }
 
-      // Formatar data
-      function formatDate(dateString) {
-        const date = new Date(dateString);
-        return date.toLocaleDateString("pt-BR");
-      }
-
-      // Ver tarefas do projeto
-      function viewProjectTasks(projectId) {
-        window.location.href = `/users/${userId}/projects/${projectId}/tasks`;
-      }
-
       // Editar projeto
       function editProject(projectId) {
         const project = allProjects.find((p) => p.id === projectId);
@@ -549,22 +449,16 @@
         document.getElementById("project-id").value = project.id;
         document.getElementById("project-name").value = project.project_name;
         document.getElementById("project-description").value =
-          project.project_description || "";
+          project.description || "";
         document.getElementById("project-status").value =
           project.project_status;
-        document.getElementById("end-date").value = project.end_date || "";
 
         openProjectModal();
       }
 
       // Excluir projeto
       async function deleteProject(projectId) {
-        if (
-          !confirm(
-            "Tem certeza que deseja excluir este projeto? Todas as tarefas associadas também serão excluídas."
-          )
-        )
-          return;
+        if (!confirm("Tem certeza que deseja excluir este projeto?")) return;
 
         try {
           const response = await fetch(
@@ -578,11 +472,47 @@
             loadProjects();
             showSuccessToast("Projeto excluído com sucesso!");
           } else {
-            throw new Error("Erro ao excluir projeto");
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Erro ao excluir projeto");
           }
         } catch (error) {
           console.error("Erro ao excluir projeto:", error);
           showErrorToast("Erro ao excluir projeto");
+        }
+      }
+
+      // Alternar status ativo/inativo do projeto
+      async function toggleProjectStatus(projectId, isActive) {
+        try {
+          const project = allProjects.find((p) => p.id === projectId);
+          const projectData = {
+            project_name: project.project_name,
+            description: project.description,
+            project_status: project.project_status,
+            is_active: isActive,
+            user_id: parseInt(userId),
+          };
+
+          const response = await fetch(
+            `/api/users/${userId}/projects/${projectId}`,
+            {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(projectData),
+            }
+          );
+
+          if (response.ok) {
+            loadProjects();
+            showSuccessToast(
+              isActive ? "Projeto ativado!" : "Projeto desativado!"
+            );
+          } else {
+            throw new Error("Erro ao alterar status do projeto");
+          }
+        } catch (error) {
+          console.error("Erro ao alterar status:", error);
+          showErrorToast("Erro ao alterar status do projeto");
         }
       }
 
@@ -676,9 +606,7 @@
           if (
             searchQuery &&
             !project.project_name.toLowerCase().includes(searchQuery) &&
-            !(project.project_description || "")
-              .toLowerCase()
-              .includes(searchQuery)
+            !(project.description || "").toLowerCase().includes(searchQuery)
           )
             return false;
 
@@ -688,25 +616,30 @@
         renderProjects();
       }
 
-      // Submit form
+      // Submit form - Baseado EXATAMENTE no modelo Joi
       async function handleFormSubmit(e) {
         e.preventDefault();
 
         const formData = new FormData(e.target);
 
+        // Dados baseados EXATAMENTE no projectModel.js
         const projectData = {
           project_name: formData.get("project_name"),
-          project_description: formData.get("project_description") || null,
-          end_date: formData.get("end_date") || null,
+          description: formData.get("description") || null,
           project_status: formData.get("project_status"),
+          is_active: true, // Sempre true para novos projetos
           user_id: parseInt(userId),
         };
+
+        console.log("Dados enviados:", projectData);
 
         try {
           showModalLoading();
 
           let response;
           if (isEditMode) {
+            // Incluir ID para update
+            projectData.id = parseInt(editingProjectId);
             response = await fetch(
               `/api/users/${userId}/projects/${editingProjectId}`,
               {
