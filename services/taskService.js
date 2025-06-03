@@ -1,6 +1,7 @@
 const taskRepo = require("../repositories/taskRepository.js");
 
-const PRIORIDADES_VALIDAS = new Set(["baixa", "média", "alta"]);
+// CORREÇÃO DEFINITIVA: Prioridades válidas SEM acento
+const PRIORIDADES_VALIDAS = new Set(["baixa", "media", "alta", "urgente"]);
 
 function validarNomeTarefa(nome) {
   if (!nome || nome.trim().length === 0) {
@@ -9,6 +10,9 @@ function validarNomeTarefa(nome) {
 }
 
 function validarDataVencimento(data) {
+  // CORREÇÃO: Permitir data nula (opcional)
+  if (!data) return; // Se não há data, não validar
+
   const hoje = new Date();
   const vencimento = new Date(data);
   if (isNaN(vencimento.getTime())) {
@@ -20,15 +24,26 @@ function validarDataVencimento(data) {
 }
 
 function validarPrioridade(prioridade) {
+  console.log("Validando prioridade:", prioridade); // DEBUG
+  console.log("Prioridades válidas:", Array.from(PRIORIDADES_VALIDAS)); // DEBUG
+
   if (prioridade && !PRIORIDADES_VALIDAS.has(prioridade.toLowerCase())) {
-    throw new Error("Prioridade inválida. Use: baixa, média ou alta.");
+    // MENSAGEM CORRIGIDA sem acento
+    throw new Error("Prioridade inválida. Use: baixa, media, alta ou urgente.");
   }
 }
 
 module.exports = {
   create: async (payload) => {
+    console.log("Payload recebido no service:", payload); // DEBUG
+
     validarNomeTarefa(payload.task_name);
-    validarDataVencimento(payload.due_date);
+
+    // CORREÇÃO: Só validar data se ela existir
+    if (payload.due_date) {
+      validarDataVencimento(payload.due_date);
+    }
+
     validarPrioridade(payload.task_priority);
 
     return taskRepo.create(payload);

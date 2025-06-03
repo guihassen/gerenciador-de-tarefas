@@ -20,6 +20,7 @@ exports.list = async (_, res) => {
     res.status(500).json({ error: e.message });
   }
 };
+("");
 exports.detail = async (req, res) => {
   try {
     const user = await svc.detail(req.params.id);
@@ -45,10 +46,10 @@ exports.update = async (req, res) => {
 exports.remove = async (req, res) => {
   try {
     const id = req.params.id;
-    console.log(`Removendo usuário com ID: ${id}`); // Debug
-    await svc.remove(id); // Aguarda a remoção
+    console.log(`Removendo usuário com ID: ${id}`);
+    await svc.remove(id);
     console.log(`Usuário com ID ${id} removido com sucesso`);
-    res.sendStatus(204); // Resposta padrão para DELETE bem-sucedido
+    res.sendStatus(204);
   } catch (e) {
     console.error("Erro ao remover usuário:", e);
     res.status(500).json({ error: e.message });

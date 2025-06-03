@@ -19,13 +19,15 @@ module.exports = {
       throw new Error("User not found");
     }
 
-    // Verificar se o projeto existe e pertence ao usuário
-    const projectCheck = await db.query(
-      "SELECT id FROM projects WHERE id = $1 AND user_id = $2",
-      [task.project_id, task.user_id]
-    );
-    if (projectCheck.rows.length === 0) {
-      throw new Error("Project not found or does not belong to user");
+    // Verificar se o projeto existe e pertence ao usuário (SOMENTE SE project_id não for null)
+    if (task.project_id) {
+      const projectCheck = await db.query(
+        "SELECT id FROM projects WHERE id = $1 AND user_id = $2",
+        [task.project_id, task.user_id]
+      );
+      if (projectCheck.rows.length === 0) {
+        throw new Error("Project not found or does not belong to user");
+      }
     }
 
     const result = await db.query(
@@ -41,7 +43,7 @@ module.exports = {
         task.has_notification ?? false,
         task.task_priority,
         task.is_completed ?? false,
-        task.project_id,
+        task.project_id, // Pode ser null agora
         task.user_id,
       ]
     );
@@ -101,13 +103,15 @@ module.exports = {
       throw new Error("User not found");
     }
 
-    // Verificar se o projeto existe e pertence ao usuário
-    const projectCheck = await db.query(
-      "SELECT id FROM projects WHERE id = $1 AND user_id = $2",
-      [payload.project_id, payload.user_id]
-    );
-    if (projectCheck.rows.length === 0) {
-      throw new Error("Project not found or does not belong to user");
+    // Verificar se o projeto existe e pertence ao usuário (SOMENTE SE project_id não for null)
+    if (payload.project_id) {
+      const projectCheck = await db.query(
+        "SELECT id FROM projects WHERE id = $1 AND user_id = $2",
+        [payload.project_id, payload.user_id]
+      );
+      if (projectCheck.rows.length === 0) {
+        throw new Error("Project not found or does not belong to user");
+      }
     }
 
     await db.query(
@@ -130,7 +134,7 @@ module.exports = {
         payload.has_notification ?? false,
         payload.task_priority,
         payload.is_completed ?? false,
-        payload.project_id,
+        payload.project_id, // Pode ser null agora
         payload.user_id,
         id,
       ]

@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bem-vindo - Gerenciador de Tarefas</title>
+    <link rel="stylesheet" href="/css/welcome.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="welcome-card">
+        <div id="loading" class="loading">
+          <div class="spinner"></div>
+          <p>Carregando informações...</p>
+        </div>
+
+        <div id="welcome-content" class="welcome-content" style="display: none">
+          <div class="user-profile">
+            <div class="user-avatar-large" id="user-avatar"></div>
+            <h1 class="welcome-title">Bem-vindo de volta!</h1>
+            <h2 class="user-name" id="user-name">Nome do Usuário</h2>
+            <p class="user-email" id="user-email">email@exemplo.com</p>
+          </div>
+
+          <div class="quick-stats">
+            <div class="stat-card">
+              <div class="stat-icon">📋</div>
+              <div class="stat-info">
+                <span class="stat-number" id="total-tasks">0</span>
+                <span class="stat-label">Tarefas Totais</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">✅</div>
+              <div class="stat-info">
+                <span class="stat-number" id="completed-tasks">0</span>
+                <span class="stat-label">Concluídas</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">⏳</div>
+              <div class="stat-info">
+                <span class="stat-number" id="pending-tasks">0</span>
+                <span class="stat-label">Pendentes</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">📁</div>
+              <div class="stat-info">
+                <span class="stat-number" id="total-projects">0</span>
+                <span class="stat-label">Projetos</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="action-buttons">
+            <button class="btn btn-primary" onclick="goToTasks()">
+              <span class="btn-icon">📝</span>
+              Ver Minhas Tarefas
+            </button>
+            <button class="btn btn-secondary" onclick="goToProjects()">
+              <span class="btn-icon">📁</span>
+              Meus Projetos
+            </button>
+            <button class="btn btn-outline" onclick="createNewTask()">
+              <span class="btn-icon">➕</span>
+              Nova Tarefa
+            </button>
+          </div>
+
+          <div class="user-actions">
+            <button class="link-btn" onclick="changeUser()">
+              🔄 Trocar de Usuário
+            </button>
+            <button class="link-btn" onclick="editProfile()">
+              ⚙️ Editar Perfil
+            </button>
+          </div>
+        </div>
+
+        <div id="error-message" class="error-message" style="display: none">
+          <div class="error-icon">⚠️</div>
+          <p>Erro ao carregar informações do usuário.</p>
+          <button class="btn btn-outline" onclick="retryLoad()">
+            Tentar Novamente
+          </button>
+          <button class="btn btn-secondary" onclick="goHome()">
+            Voltar ao Início
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal para criar nova tarefa -->
+    <div id="task-modal" class="modal" style="display: none">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Nova Tarefa</h2>
+          <span class="close" onclick="closeTaskModal()">&times;</span>
+        </div>
+
+        <form id="task-form" class="task-form">
+          <div class="form-group">
+            <label for="task-name">Nome da Tarefa *</label>
+            <input
+              type="text"
+              id="task-name"
+              name="task_name"
+              required
+              placeholder="Digite o nome da tarefa"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="task-description">Descrição</label>
+            <textarea
+              id="task-description"
+              name="task_description"
+              rows="4"
+              placeholder="Descreva os detalhes da tarefa (opcional)"
+            ></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="task-priority">Prioridade</label>
+              <select id="task-priority" name="task_priority">
+                <option value="baixa">Baixa</option>
+                <option value="media" selected>Média</option>
+                <option value="alta">Alta</option>
+                <option value="urgente">Urgente</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="due-date">Data de Vencimento</label>
+              <input type="date" id="due-date" name="due_date" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="due-time">Horário</label>
+              <input type="time" id="due-time" name="due_time" />
+            </div>
+
+            <div class="form-group">
+              <label for="task-project">Projeto</label>
+              <select id="task-project" name="project_id">
+                <option value="">Sem projeto</option>
+                <!-- Projetos serão carregados dinamicamente -->
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                id="has-notification"
+                name="has_notification"
+              />
+              <span class="checkmark"></span>
+              Receber notificação
+            </label>
+          </div>
+
+          <div class="form-actions">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="closeTaskModal()"
+            >
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn-primary" id="create-task-btn">
+              <span class="btn-icon">✅</span>
+              Criar Tarefa
+            </button>
+          </div>
+        </form>
+
+        <div id="task-loading" class="modal-loading" style="display: none">
+          <div class="spinner"></div>
+          <p>Criando tarefa...</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Obter ID do usuário da URL
+      const userId = window.location.pathname.split("/").pop();
+      let currentUser = null;
+
+      // Função para buscar dados do usuário
+      async function loadUserData() {
+        try {
+          showLoading();
+
+          const response = await fetch(`/api/users/${userId}`);
+
+          if (!response.ok) {
+            throw new Error(`Erro HTTP: ${response.status}`);
+          }
+
+          currentUser = await response.json();
+          renderWelcomePage();
+          showWelcomeContent();
+        } catch (error) {
+          console.error("Erro ao carregar dados do usuário:", error);
+          showError();
+        }
+      }
+
+      // Função para renderizar a página de boas-vindas
+      function renderWelcomePage() {
+        if (!currentUser) return;
+
+        // Atualizar nome e email
+        document.getElementById("user-name").textContent =
+          currentUser.name || "Usuário";
+        document.getElementById("user-email").textContent =
+          currentUser.email || "Email não informado";
+
+        // Gerar e mostrar avatar
+        const initials = getInitials(currentUser.name || "Usuário");
+        document.getElementById("user-avatar").textContent = initials;
+
+        // Carregar estatísticas
+        loadUserStats();
+      }
+
+      // Função para carregar estatísticas do usuário
+      async function loadUserStats() {
+        try {
+          // Buscar tarefas do usuário
+          const tasksResponse = await fetch(`/api/users/${userId}/tasks`);
+          const projectsResponse = await fetch(`/api/users/${userId}/projects`);
+
+          let tasks = [];
+          let projects = [];
+
+          // Verificar se as requisições foram bem-sucedidas
+          if (tasksResponse.ok) {
+            tasks = await tasksResponse.json();
+            console.log("Tarefas do usuário:", tasks);
+          } else {
+            console.warn("Erro ao buscar tarefas:", tasksResponse.status);
+          }
+
+          if (projectsResponse.ok) {
+            projects = await projectsResponse.json();
+            console.log("Projetos do usuário:", projects);
+          } else {
+            console.warn("Erro ao buscar projetos:", projectsResponse.status);
+          }
+
+          // Calcular estatísticas das tarefas
+          const totalTasks = tasks.length;
+          const completedTasks = tasks.filter(
+            (task) =>
+              task.status === "completed" ||
+              task.completed === true ||
+              task.is_completed === true ||
+              task.status === "concluída"
+          ).length;
+          const pendingTasks = totalTasks - completedTasks;
+
+          // Atualizar estatísticas de projetos também
+          const totalProjects = projects.length;
+
+          // Animar os números das tarefas
+          animateNumber("total-tasks", totalTasks);
+          animateNumber("completed-tasks", completedTasks);
+          animateNumber("pending-tasks", pendingTasks);
+          animateNumber("total-projects", totalProjects);
+        } catch (error) {
+          console.error("Erro ao carregar estatísticas:", error);
+
+          // Em caso de erro, manter valores padrão
+          animateNumber("total-tasks", 0);
+          animateNumber("completed-tasks", 0);
+          animateNumber("pending-tasks", 0);
+          animateNumber("total-projects", 0);
+        }
+      }
+
+      // Função para animar números
+      function animateNumber(elementId, targetValue) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+
+        const duration = 1000;
+        const increment = targetValue / (duration / 50);
+        let currentValue = 0;
+
+        const timer = setInterval(() => {
+          currentValue += increment;
+          if (currentValue >= targetValue) {
+            currentValue = targetValue;
+            clearInterval(timer);
+          }
+          element.textContent = Math.floor(currentValue);
+        }, 50);
+      }
+
+      // Função para gerar iniciais
+      function getInitials(name) {
+        return name
+          .split(" ")
+          .map((word) => word.charAt(0).toUpperCase())
+          .slice(0, 2)
+          .join("");
+      }
+
+      // Funções de controle de exibição
+      function showLoading() {
+        hideAllSections();
+        document.getElementById("loading").style.display = "block";
+      }
+
+      function showWelcomeContent() {
+        hideAllSections();
+        document.getElementById("welcome-content").style.display = "block";
+      }
+
+      function showError() {
+        hideAllSections();
+        document.getElementById("error-message").style.display = "block";
+      }
+
+      function hideAllSections() {
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("welcome-content").style.display = "none";
+        document.getElementById("error-message").style.display = "none";
+      }
+
+      function goToTasks() {
+        sessionStorage.setItem("selectedUser", JSON.stringify(currentUser));
+        console.log("Redirecionando para:", `/users/${userId}/tasks`);
+        window.location.href = `/users/${userId}/tasks`;
+      }
+
+      function goToProjects() {
+        sessionStorage.setItem("selectedUser", JSON.stringify(currentUser));
+        console.log("Redirecionando para:", `/users/${userId}/projects`);
+        window.location.href = `/users/${userId}/projects`;
+      }
+
+      function createNewTask() {
+        sessionStorage.setItem("selectedUser", JSON.stringify(currentUser));
+        openTaskModal();
+      }
+
+      function changeUser() {
+        sessionStorage.removeItem("selectedUser");
+        window.location.href = "/";
+      }
+
+      function editProfile() {
+        alert("Redirecionando para edição de perfil...");
+        // window.location.href = `/users/${userId}/edit`;
+      }
+
+      function retryLoad() {
+        loadUserData();
+      }
+
+      function goHome() {
+        window.location.href = "/";
+      }
+
+      // Funções do Modal de Tarefa
+      async function openTaskModal() {
+        document.getElementById("task-modal").style.display = "flex";
+        document.body.style.overflow = "hidden";
+
+        // Limpar formulário
+        document.getElementById("task-form").reset();
+
+        // Carregar projetos no select
+        await loadProjectsForSelect();
+      }
+
+      function closeTaskModal() {
+        document.getElementById("task-modal").style.display = "none";
+        document.body.style.overflow = "auto";
+
+        // Limpar formulário
+        document.getElementById("task-form").reset();
+      }
+
+      // Carregar projetos para o select
+      async function loadProjectsForSelect() {
+        try {
+          const response = await fetch(`/api/users/${userId}/projects`);
+
+          if (response.ok) {
+            const projects = await response.json();
+            const projectSelect = document.getElementById("task-project");
+
+            // Limpar opções existentes
+            projectSelect.innerHTML = '<option value="">Sem projeto</option>';
+
+            // Adicionar projetos
+            projects.forEach((project) => {
+              const option = document.createElement("option");
+              option.value = project.id;
+              option.textContent =
+                project.project_name || project.name || `Projeto ${project.id}`;
+              projectSelect.appendChild(option);
+            });
+          }
+        } catch (error) {
+          console.error("Erro ao carregar projetos:", error);
+        }
+      }
+
+      // Funções auxiliares do modal
+      function showTaskLoading() {
+        document.getElementById("task-loading").style.display = "block";
+        document.getElementById("create-task-btn").disabled = true;
+      }
+
+      function hideTaskLoading() {
+        document.getElementById("task-loading").style.display = "none";
+        document.getElementById("create-task-btn").disabled = false;
+      }
+
+      function showSuccessMessage(message) {
+        const toast = document.createElement("div");
+        toast.className = "toast toast-success";
+        toast.innerHTML = `
+          <span class="toast-icon">✅</span>
+          <span>${message}</span>
+        `;
+
+        document.body.appendChild(toast);
+
+        setTimeout(() => toast.classList.add("show"), 100);
+
+        setTimeout(() => {
+          toast.classList.remove("show");
+          setTimeout(() => document.body.removeChild(toast), 300);
+        }, 3000);
+      }
+
+      function showErrorMessage(message) {
+        const toast = document.createElement("div");
+        toast.className = "toast toast-error";
+        toast.innerHTML = `
+          <span class="toast-icon">❌</span>
+          <span>${message}</span>
+        `;
+
+        document.body.appendChild(toast);
+
+        setTimeout(() => toast.classList.add("show"), 100);
+
+        setTimeout(() => {
+          toast.classList.remove("show");
+          setTimeout(() => document.body.removeChild(toast), 300);
+        }, 4000);
+      }
+
+      // Inicializar quando a página carregar
+      document.addEventListener("DOMContentLoaded", () => {
+        console.log("Carregando dados do usuário:", userId);
+        loadUserData();
+        loadProjectsForSelect();
+      });
+
+      // Event listener para submissão do formulário - CORRIGIDO
+      document
+        .getElementById("task-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const formData = new FormData(e.target);
+          const projectId = formData.get("project_id");
+
+          // CORREÇÃO: Estrutura de dados corrigida
+          const taskData = {
+            task_name: formData.get("task_name"),
+            task_description: formData.get("task_description") || null,
+            due_date: formData.get("due_date") || null,
+            due_time: formData.get("due_time") || null,
+            has_notification: formData.get("has_notification") === "on",
+            task_priority: formData.get("task_priority"),
+            is_completed: false,
+            user_id: parseInt(userId),
+          };
+
+          // Só adicionar project_id se um projeto foi selecionado
+          if (projectId && projectId !== "") {
+            taskData.project_id = parseInt(projectId);
+          }
+
+          console.log("Dados enviados:", taskData); // DEBUG
+
+          try {
+            showTaskLoading();
+
+            const response = await fetch(`/api/users/${userId}/tasks`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(taskData),
+            });
+
+            if (response.ok) {
+              const newTask = await response.json();
+              console.log("Tarefa criada:", newTask);
+
+              closeTaskModal();
+              showSuccessMessage("Tarefa criada com sucesso!");
+              loadUserStats();
+            } else {
+              const errorData = await response.json();
+              throw new Error(errorData.error || "Erro ao criar tarefa");
+            }
+          } catch (error) {
+            console.error("Erro ao criar tarefa:", error);
+            showErrorMessage(error.message);
+          } finally {
+            hideTaskLoading();
+          }
+        });
+
+      // Fechar modal ao clicar fora dele
+      document.getElementById("task-modal").addEventListener("click", (e) => {
+        if (e.target.id === "task-modal") {
+          closeTaskModal();
+        }
+      });
+    </script>
+  </body>
+</html>

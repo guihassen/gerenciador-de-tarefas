@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Minhas Tarefas - Gerenciador de Tarefas</title>
+    <link rel="stylesheet" href="/css/tasks.css" />
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <header class="header">
+        <div class="header-content">
+          <div class="user-info">
+            <div class="user-avatar" id="user-avatar">U</div>
+            <div class="user-details">
+              <h1 id="user-name">Carregando...</h1>
+              <p id="user-email">email@exemplo.com</p>
+            </div>
+          </div>
+          <div class="header-actions">
+            <button class="btn btn-primary" onclick="openCreateTaskModal()">
+              <span class="btn-icon">➕</span>
+              Nova Tarefa
+            </button>
+            <button class="btn btn-outline" onclick="goToWelcome()">
+              <span class="btn-icon">🏠</span>
+              Dashboard
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Loading State -->
+        <div id="loading" class="loading">
+          <div class="spinner"></div>
+          <p>Carregando suas tarefas...</p>
+        </div>
+
+        <!-- Tasks Content -->
+        <div id="tasks-content" class="tasks-content" style="display: none">
+          <!-- Stats Cards -->
+          <div class="stats-overview">
+            <div class="stat-card stat-total">
+              <div class="stat-icon">📋</div>
+              <div class="stat-info">
+                <span class="stat-number" id="total-tasks">0</span>
+                <span class="stat-label">Total</span>
+              </div>
+            </div>
+            <div class="stat-card stat-completed">
+              <div class="stat-icon">✅</div>
+              <div class="stat-info">
+                <span class="stat-number" id="completed-tasks">0</span>
+                <span class="stat-label">Concluídas</span>
+              </div>
+            </div>
+            <div class="stat-card stat-pending">
+              <div class="stat-icon">⏳</div>
+              <div class="stat-info">
+                <span class="stat-number" id="pending-tasks">0</span>
+                <span class="stat-label">Pendentes</span>
+              </div>
+            </div>
+            <div class="stat-card stat-priority">
+              <div class="stat-icon">🔥</div>
+              <div class="stat-info">
+                <span class="stat-number" id="high-priority-tasks">0</span>
+                <span class="stat-label">Alta Prioridade</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filters -->
+          <div class="filters-section">
+            <div class="filters">
+              <select id="filter-status" class="filter-select">
+                <option value="all">Todas as tarefas</option>
+                <option value="pending">Pendentes</option>
+                <option value="completed">Concluídas</option>
+              </select>
+              <select id="filter-priority" class="filter-select">
+                <option value="all">Todas as prioridades</option>
+                <option value="urgente">Urgente</option>
+                <option value="alta">Alta</option>
+                <option value="media">Média</option>
+                <option value="baixa">Baixa</option>
+              </select>
+              <input
+                type="text"
+                id="search-tasks"
+                class="search-input"
+                placeholder="Buscar tarefas..."
+              />
+            </div>
+          </div>
+
+          <!-- Tasks List -->
+          <div class="tasks-section">
+            <div id="tasks-list" class="tasks-list">
+              <!-- Tasks will be rendered here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="empty-state" style="display: none">
+          <div class="empty-icon">📝</div>
+          <h2>Nenhuma tarefa encontrada</h2>
+          <p>Comece criando sua primeira tarefa!</p>
+          <button class="btn btn-primary" onclick="openCreateTaskModal()">
+            <span class="btn-icon">➕</span>
+            Criar Primeira Tarefa
+          </button>
+        </div>
+
+        <!-- Error State -->
+        <div id="error-state" class="error-state" style="display: none">
+          <div class="error-icon">⚠️</div>
+          <h2>Erro ao carregar tarefas</h2>
+          <p>Tente novamente em alguns instantes.</p>
+          <button class="btn btn-outline" onclick="loadTasks()">
+            <span class="btn-icon">🔄</span>
+            Tentar Novamente
+          </button>
+        </div>
+      </main>
+    </div>
+
+    <!-- Modal para criar/editar tarefa -->
+    <div id="task-modal" class="modal" style="display: none">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="modal-title">Nova Tarefa</h2>
+          <span class="close" onclick="closeTaskModal()">&times;</span>
+        </div>
+
+        <form id="task-form" class="task-form">
+          <input type="hidden" id="task-id" name="task_id" />
+
+          <div class="form-group">
+            <label for="task-name">Nome da Tarefa *</label>
+            <input
+              type="text"
+              id="task-name"
+              name="task_name"
+              required
+              placeholder="Digite o nome da tarefa"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="task-description">Descrição</label>
+            <textarea
+              id="task-description"
+              name="task_description"
+              rows="4"
+              placeholder="Descreva os detalhes da tarefa (opcional)"
+            ></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="task-priority">Prioridade</label>
+              <select id="task-priority" name="task_priority">
+                <option value="baixa">Baixa</option>
+                <option value="media" selected>Média</option>
+                <option value="alta">Alta</option>
+                <option value="urgente">Urgente</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="due-date">Data de Vencimento</label>
+              <input type="date" id="due-date" name="due_date" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="due-time">Horário</label>
+              <input type="time" id="due-time" name="due_time" />
+            </div>
+
+            <div class="form-group">
+              <label for="task-project">Projeto</label>
+              <select id="task-project" name="project_id">
+                <option value="">Sem projeto</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                id="has-notification"
+                name="has_notification"
+              />
+              <span class="checkmark"></span>
+              Receber notificação
+            </label>
+          </div>
+
+          <div class="form-actions">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="closeTaskModal()"
+            >
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn-primary" id="submit-task-btn">
+              <span class="btn-icon" id="submit-icon">✅</span>
+              <span id="submit-text">Criar Tarefa</span>
+            </button>
+          </div>
+        </form>
+
+        <div
+          id="task-modal-loading"
+          class="modal-loading"
+          style="display: none"
+        >
+          <div class="spinner"></div>
+          <p>Processando...</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Variáveis globais
+      const userId = window.location.pathname.split("/")[2]; // /users/2/tasks -> userId = 2
+      let currentUser = null;
+      let allTasks = [];
+      let filteredTasks = [];
+      let isEditMode = false;
+      let editingTaskId = null;
+
+      // Inicialização
+      document.addEventListener("DOMContentLoaded", () => {
+        console.log("Carregando página de tarefas para usuário:", userId);
+        loadUserData();
+        loadTasks();
+        setupEventListeners();
+      });
+
+      // Carregar dados do usuário
+      async function loadUserData() {
+        try {
+          const response = await fetch(`/api/users/${userId}`);
+          if (response.ok) {
+            currentUser = await response.json();
+            renderUserInfo();
+          }
+        } catch (error) {
+          console.error("Erro ao carregar dados do usuário:", error);
+        }
+      }
+
+      // Renderizar informações do usuário
+      function renderUserInfo() {
+        if (!currentUser) return;
+
+        document.getElementById("user-name").textContent =
+          currentUser.name || "Usuário";
+        document.getElementById("user-email").textContent =
+          currentUser.email || "Email não informado";
+
+        const initials = getInitials(currentUser.name || "Usuário");
+        document.getElementById("user-avatar").textContent = initials;
+      }
+
+      // Gerar iniciais
+      function getInitials(name) {
+        return name
+          .split(" ")
+          .map((word) => word.charAt(0).toUpperCase())
+          .slice(0, 2)
+          .join("");
+      }
+
+      // Carregar tarefas
+      async function loadTasks() {
+        try {
+          showLoading();
+
+          const response = await fetch(`/api/users/${userId}/tasks`);
+
+          if (!response.ok) {
+            throw new Error(`Erro HTTP: ${response.status}`);
+          }
+
+          allTasks = await response.json();
+          console.log("Tarefas carregadas:", allTasks);
+
+          if (allTasks.length === 0) {
+            showEmptyState();
+          } else {
+            filteredTasks = [...allTasks];
+            renderStats();
+            renderTasks();
+            showTasksContent();
+          }
+        } catch (error) {
+          console.error("Erro ao carregar tarefas:", error);
+          showErrorState();
+        }
+      }
+
+      // Renderizar estatísticas
+      function renderStats() {
+        const total = allTasks.length;
+        const completed = allTasks.filter((task) => task.is_completed).length;
+        const pending = total - completed;
+        const highPriority = allTasks.filter(
+          (task) =>
+            task.task_priority === "alta" || task.task_priority === "urgente"
+        ).length;
+
+        animateNumber("total-tasks", total);
+        animateNumber("completed-tasks", completed);
+        animateNumber("pending-tasks", pending);
+        animateNumber("high-priority-tasks", highPriority);
+      }
+
+      // Animar números
+      function animateNumber(elementId, targetValue) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+
+        const duration = 800;
+        const increment = targetValue / (duration / 50);
+        let currentValue = 0;
+
+        const timer = setInterval(() => {
+          currentValue += increment;
+          if (currentValue >= targetValue) {
+            currentValue = targetValue;
+            clearInterval(timer);
+          }
+          element.textContent = Math.floor(currentValue);
+        }, 50);
+      }
+
+      // Renderizar lista de tarefas
+      function renderTasks() {
+        const tasksList = document.getElementById("tasks-list");
+        tasksList.innerHTML = "";
+
+        if (filteredTasks.length === 0) {
+          tasksList.innerHTML = `
+            <div class="no-results">
+              <p>Nenhuma tarefa encontrada com os filtros aplicados.</p>
+            </div>
+          `;
+          return;
+        }
+
+        filteredTasks.forEach((task) => {
+          const taskCard = createTaskCard(task);
+          tasksList.appendChild(taskCard);
+        });
+      }
+
+      // Criar card de tarefa
+      function createTaskCard(task) {
+        const taskCard = document.createElement("div");
+        taskCard.className = `task-card ${
+          task.is_completed ? "completed" : ""
+        }`;
+        taskCard.setAttribute("data-task-id", task.id);
+
+        const priorityClass = getPriorityClass(task.task_priority);
+        const priorityIcon = getPriorityIcon(task.task_priority);
+
+        taskCard.innerHTML = `
+          <div class="task-content">
+            <div class="task-header">
+              <div class="task-checkbox">
+                <input 
+                  type="checkbox" 
+                  ${task.is_completed ? "checked" : ""} 
+                  onchange="toggleTaskStatus(${task.id}, this.checked)"
+                >
+              </div>
+              <div class="task-info">
+                <h3 class="task-title">${task.task_name}</h3>
+                ${
+                  task.task_description
+                    ? `<p class="task-description">${task.task_description}</p>`
+                    : ""
+                }
+              </div>
+              <div class="task-priority ${priorityClass}">
+                <span class="priority-icon">${priorityIcon}</span>
+                <span class="priority-text">${task.task_priority}</span>
+              </div>
+            </div>
+            
+            <div class="task-details">
+              ${
+                task.due_date
+                  ? `
+                <div class="task-date">
+                  <span class="date-icon">📅</span>
+                  <span>${formatDate(task.due_date)}${
+                      task.due_time ? ` às ${task.due_time}` : ""
+                    }</span>
+                </div>
+              `
+                  : ""
+              }
+              
+              ${
+                task.project_name
+                  ? `
+                <div class="task-project">
+                  <span class="project-icon">📁</span>
+                  <span>${task.project_name}</span>
+                </div>
+              `
+                  : ""
+              }
+            </div>
+          </div>
+          
+          <div class="task-actions">
+            <button class="action-btn edit-btn" onclick="editTask(${
+              task.id
+            })" title="Editar">
+              <span>✏️</span>
+            </button>
+            <button class="action-btn delete-btn" onclick="deleteTask(${
+              task.id
+            })" title="Excluir">
+              <span>🗑️</span>
+            </button>
+          </div>
+        `;
+
+        return taskCard;
+
+        // ADICIONE estas linhas ANTES do return taskCard; na função createTaskCard
+        console.log("Criando card para tarefa:", {
+          id: task.id,
+          name: task.task_name,
+          tipoId: typeof task.id,
+        });
+      }
+
+      // Funções auxiliares para prioridade
+      function getPriorityClass(priority) {
+        const classes = {
+          baixa: "priority-low",
+          media: "priority-medium",
+          alta: "priority-high",
+          urgente: "priority-urgent",
+        };
+        return classes[priority] || "priority-medium";
+      }
+
+      function getPriorityIcon(priority) {
+        const icons = {
+          baixa: "🟢",
+          media: "🟡",
+          alta: "🟠",
+          urgente: "🔴",
+        };
+        return icons[priority] || "🟡";
+      }
+
+      // Formatar data
+      function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString("pt-BR");
+      }
+
+      // Alternar status da tarefa
+      async function toggleTaskStatus(taskId, isCompleted) {
+        try {
+          const endpoint = isCompleted ? "complete" : "incomplete";
+          const response = await fetch(
+            `/api/users/${userId}/tasks/${taskId}/${endpoint}`,
+            {
+              method: "PATCH",
+            }
+          );
+
+          if (response.ok) {
+            loadTasks(); // Recarregar lista
+            showSuccessToast(
+              isCompleted ? "Tarefa concluída!" : "Tarefa reaberta!"
+            );
+          } else {
+            throw new Error("Erro ao atualizar tarefa");
+          }
+        } catch (error) {
+          console.error("Erro ao alterar status:", error);
+          showErrorToast("Erro ao atualizar tarefa");
+          loadTasks(); // Reverter mudança visual
+        }
+      }
+
+      // Editar tarefa
+      function editTask(taskId) {
+        const task = allTasks.find((t) => t.id === taskId);
+        if (!task) return;
+
+        isEditMode = true;
+        editingTaskId = taskId;
+
+        // Preencher formulário
+        document.getElementById("modal-title").textContent = "Editar Tarefa";
+        document.getElementById("submit-text").textContent =
+          "Salvar Alterações";
+        document.getElementById("submit-icon").textContent = "💾";
+
+        document.getElementById("task-id").value = task.id;
+        document.getElementById("task-name").value = task.task_name;
+        document.getElementById("task-description").value =
+          task.task_description || "";
+        document.getElementById("task-priority").value = task.task_priority;
+        document.getElementById("due-date").value = task.due_date || "";
+        document.getElementById("due-time").value = task.due_time || "";
+        document.getElementById("has-notification").checked =
+          task.has_notification;
+
+        openTaskModal();
+      }
+
+      async function deleteTask(taskId) {
+        if (taskId === undefined || taskId === null) {
+          console.error("ERRO: taskId é inválido!");
+          alert("ERRO: ID da tarefa é inválido. Verifique o console.");
+          return;
+        }
+
+        if (!confirm("Tem certeza que deseja excluir esta tarefa?")) return;
+
+        const url = `/api/users/${userId}/tasks/${taskId}`;
+        console.log("URL que será chamada:", url);
+
+        try {
+          console.log("Fazendo requisição DELETE...");
+          const response = await fetch(url, {
+            method: "DELETE",
+          });
+
+          console.log("Resposta recebida. Status:", response.status);
+
+          if (response.ok) {
+            console.log("Sucesso! Recarregando tarefas...");
+            loadTasks();
+            showSuccessToast("Tarefa excluída com sucesso!");
+          } else {
+            console.log("Erro na resposta do servidor");
+            const errorText = await response.text();
+            console.log("Texto do erro:", errorText);
+            throw new Error("Erro ao excluir tarefa");
+          }
+        } catch (error) {
+          console.error("Erro na requisição:", error);
+          showErrorToast("Erro ao excluir tarefa");
+        }
+      }
+
+      function showLoading() {
+        hideAllStates();
+        document.getElementById("loading").style.display = "block";
+      }
+
+      function showTasksContent() {
+        hideAllStates();
+        document.getElementById("tasks-content").style.display = "block";
+      }
+
+      function showEmptyState() {
+        hideAllStates();
+        document.getElementById("empty-state").style.display = "block";
+      }
+
+      function showErrorState() {
+        hideAllStates();
+        document.getElementById("error-state").style.display = "block";
+      }
+
+      function hideAllStates() {
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("tasks-content").style.display = "none";
+        document.getElementById("empty-state").style.display = "none";
+        document.getElementById("error-state").style.display = "none";
+      }
+
+      // Modal functions
+      function openCreateTaskModal() {
+        isEditMode = false;
+        editingTaskId = null;
+
+        document.getElementById("modal-title").textContent = "Nova Tarefa";
+        document.getElementById("submit-text").textContent = "Criar Tarefa";
+        document.getElementById("submit-icon").textContent = "✅";
+
+        document.getElementById("task-form").reset();
+        openTaskModal();
+      }
+
+      async function openTaskModal() {
+        document.getElementById("task-modal").style.display = "flex";
+        document.body.style.overflow = "hidden";
+        await loadProjectsForSelect();
+      }
+
+      function closeTaskModal() {
+        document.getElementById("task-modal").style.display = "none";
+        document.body.style.overflow = "auto";
+        document.getElementById("task-form").reset();
+      }
+
+      // Carregar projetos para select
+      async function loadProjectsForSelect() {
+        try {
+          const response = await fetch(`/api/users/${userId}/projects`);
+          if (response.ok) {
+            const projects = await response.json();
+            const projectSelect = document.getElementById("task-project");
+            projectSelect.innerHTML = '<option value="">Sem projeto</option>';
+
+            projects.forEach((project) => {
+              const option = document.createElement("option");
+              option.value = project.id;
+              option.textContent =
+                project.project_name || project.name || `Projeto ${project.id}`;
+              projectSelect.appendChild(option);
+            });
+          }
+        } catch (error) {
+          console.error("Erro ao carregar projetos:", error);
+        }
+      }
+
+      // Filtros e busca
+      function setupEventListeners() {
+        // Filtros
+        document
+          .getElementById("filter-status")
+          .addEventListener("change", applyFilters);
+        document
+          .getElementById("filter-priority")
+          .addEventListener("change", applyFilters);
+        document
+          .getElementById("search-tasks")
+          .addEventListener("input", applyFilters);
+
+        // Form submit
+        document
+          .getElementById("task-form")
+          .addEventListener("submit", handleFormSubmit);
+
+        // Modal click outside
+        document.getElementById("task-modal").addEventListener("click", (e) => {
+          if (e.target.id === "task-modal") closeTaskModal();
+        });
+      }
+
+      function applyFilters() {
+        const statusFilter = document.getElementById("filter-status").value;
+        const priorityFilter = document.getElementById("filter-priority").value;
+        const searchQuery = document
+          .getElementById("search-tasks")
+          .value.toLowerCase();
+
+        filteredTasks = allTasks.filter((task) => {
+          // Status filter
+          if (statusFilter === "pending" && task.is_completed) return false;
+          if (statusFilter === "completed" && !task.is_completed) return false;
+
+          // Priority filter
+          if (priorityFilter !== "all" && task.task_priority !== priorityFilter)
+            return false;
+
+          // Search filter
+          if (
+            searchQuery &&
+            !task.task_name.toLowerCase().includes(searchQuery)
+          )
+            return false;
+
+          return true;
+        });
+
+        renderTasks();
+      }
+
+      // Submit form
+      async function handleFormSubmit(e) {
+        e.preventDefault();
+
+        const formData = new FormData(e.target);
+        const projectId = formData.get("project_id");
+
+        const taskData = {
+          task_name: formData.get("task_name"),
+          task_description: formData.get("task_description") || null,
+          due_date: formData.get("due_date") || null,
+          due_time: formData.get("due_time") || null,
+          has_notification: formData.get("has_notification") === "on",
+          task_priority: formData.get("task_priority"),
+          is_completed: false,
+          user_id: parseInt(userId),
+        };
+
+        if (projectId && projectId !== "") {
+          taskData.project_id = parseInt(projectId);
+        }
+
+        try {
+          showModalLoading();
+
+          let response;
+          if (isEditMode) {
+            response = await fetch(
+              `/api/users/${userId}/tasks/${editingTaskId}`,
+              {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(taskData),
+              }
+            );
+          } else {
+            response = await fetch(`/api/users/${userId}/tasks`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(taskData),
+            });
+          }
+
+          if (response.ok) {
+            closeTaskModal();
+            loadTasks();
+            showSuccessToast(
+              isEditMode ? "Tarefa atualizada!" : "Tarefa criada!"
+            );
+          } else {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Erro ao salvar tarefa");
+          }
+        } catch (error) {
+          console.error("Erro ao salvar tarefa:", error);
+          showErrorToast(error.message);
+        } finally {
+          hideModalLoading();
+        }
+      }
+
+      // Modal loading
+      function showModalLoading() {
+        document.getElementById("task-modal-loading").style.display = "block";
+        document.getElementById("submit-task-btn").disabled = true;
+      }
+
+      function hideModalLoading() {
+        document.getElementById("task-modal-loading").style.display = "none";
+        document.getElementById("submit-task-btn").disabled = false;
+      }
+
+      // Toasts
+      function showSuccessToast(message) {
+        showToast(message, "success");
+      }
+
+      function showErrorToast(message) {
+        showToast(message, "error");
+      }
+
+      function showToast(message, type) {
+        const toast = document.createElement("div");
+        toast.className = `toast toast-${type}`;
+        toast.innerHTML = `
+          <span class="toast-icon">${type === "success" ? "✅" : "❌"}</span>
+          <span>${message}</span>
+        `;
+
+        document.body.appendChild(toast);
+        setTimeout(() => toast.classList.add("show"), 100);
+
+        setTimeout(() => {
+          toast.classList.remove("show");
+          setTimeout(() => document.body.removeChild(toast), 300);
+        }, 3000);
+      }
+
+      // Navigation
+      function goToWelcome() {
+        window.location.href = `/users/${userId}`;
+      }
+    </script>
+  </body>
+</html>

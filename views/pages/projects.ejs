@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Meus Projetos - Gerenciador de Tarefas</title>
+    <link rel="stylesheet" href="/css/projects.css" />
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <header class="header">
+        <div class="header-content">
+          <div class="user-info">
+            <div class="user-avatar" id="user-avatar">U</div>
+            <div class="user-details">
+              <h1 id="user-name">Carregando...</h1>
+              <p id="user-email">email@exemplo.com</p>
+            </div>
+          </div>
+          <div class="header-actions">
+            <button class="btn btn-primary" onclick="openCreateProjectModal()">
+              <span class="btn-icon">➕</span>
+              Novo Projeto
+            </button>
+            <button class="btn btn-outline" onclick="goToTasks()">
+              <span class="btn-icon">📋</span>
+              Tarefas
+            </button>
+            <button class="btn btn-outline" onclick="goToWelcome()">
+              <span class="btn-icon">🏠</span>
+              Dashboard
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Loading State -->
+        <div id="loading" class="loading">
+          <div class="spinner"></div>
+          <p>Carregando seus projetos...</p>
+        </div>
+
+        <!-- Projects Content -->
+        <div
+          id="projects-content"
+          class="projects-content"
+          style="display: none"
+        >
+          <!-- Stats Cards -->
+          <div class="stats-overview">
+            <div class="stat-card stat-total">
+              <div class="stat-icon">📁</div>
+              <div class="stat-info">
+                <span class="stat-number" id="total-projects">0</span>
+                <span class="stat-label">Total</span>
+              </div>
+            </div>
+            <div class="stat-card stat-active">
+              <div class="stat-icon">🚀</div>
+              <div class="stat-info">
+                <span class="stat-number" id="active-projects">0</span>
+                <span class="stat-label">Ativos</span>
+              </div>
+            </div>
+            <div class="stat-card stat-completed">
+              <div class="stat-icon">✅</div>
+              <div class="stat-info">
+                <span class="stat-number" id="completed-projects">0</span>
+                <span class="stat-label">Concluídos</span>
+              </div>
+            </div>
+            <div class="stat-card stat-overdue">
+              <div class="stat-icon">⏰</div>
+              <div class="stat-info">
+                <span class="stat-number" id="overdue-projects">0</span>
+                <span class="stat-label">Atrasados</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filters -->
+          <div class="filters-section">
+            <div class="filters">
+              <select id="filter-status" class="filter-select">
+                <option value="all">Todos os projetos</option>
+                <option value="ativo">Ativos</option>
+                <option value="concluido">Concluídos</option>
+                <option value="pausado">Pausados</option>
+              </select>
+              <input
+                type="text"
+                id="search-projects"
+                class="search-input"
+                placeholder="Buscar projetos..."
+              />
+            </div>
+          </div>
+
+          <!-- Projects List -->
+          <div class="projects-section">
+            <div id="projects-list" class="projects-list">
+              <!-- Projects will be rendered here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="empty-state" style="display: none">
+          <div class="empty-icon">📁</div>
+          <h2>Nenhum projeto encontrado</h2>
+          <p>Comece criando seu primeiro projeto!</p>
+          <button class="btn btn-primary" onclick="openCreateProjectModal()">
+            <span class="btn-icon">➕</span>
+            Criar Primeiro Projeto
+          </button>
+        </div>
+
+        <!-- Error State -->
+        <div id="error-state" class="error-state" style="display: none">
+          <div class="error-icon">⚠️</div>
+          <h2>Erro ao carregar projetos</h2>
+          <p>Tente novamente em alguns instantes.</p>
+          <button class="btn btn-outline" onclick="loadProjects()">
+            <span class="btn-icon">🔄</span>
+            Tentar Novamente
+          </button>
+        </div>
+      </main>
+    </div>
+
+    <!-- Modal para criar/editar projeto -->
+    <div id="project-modal" class="modal" style="display: none">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="modal-title">Novo Projeto</h2>
+          <span class="close" onclick="closeProjectModal()">&times;</span>
+        </div>
+
+        <form id="project-form" class="project-form">
+          <input type="hidden" id="project-id" name="project_id" />
+
+          <div class="form-group">
+            <label for="project-name">Nome do Projeto *</label>
+            <input
+              type="text"
+              id="project-name"
+              name="project_name"
+              required
+              placeholder="Digite o nome do projeto"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="project-description">Descrição</label>
+            <textarea
+              id="project-description"
+              name="project_description"
+              rows="4"
+              placeholder="Descreva os objetivos e detalhes do projeto (opcional)"
+            ></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="project-status">Status</label>
+              <select id="project-status" name="project_status">
+                <option value="ativo">Ativo</option>
+                <option value="pausado">Pausado</option>
+                <option value="concluido">Concluído</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="end-date">Data de Conclusão</label>
+              <input type="date" id="end-date" name="end_date" />
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="closeProjectModal()"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              id="submit-project-btn"
+            >
+              <span class="btn-icon" id="submit-icon">✅</span>
+              <span id="submit-text">Criar Projeto</span>
+            </button>
+          </div>
+        </form>
+
+        <div
+          id="project-modal-loading"
+          class="modal-loading"
+          style="display: none"
+        >
+          <div class="spinner"></div>
+          <p>Processando...</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Variáveis globais
+      const userId = window.location.pathname.split("/")[2]; // /users/2/projects -> userId = 2
+      let currentUser = null;
+      let allProjects = [];
+      let filteredProjects = [];
+      let isEditMode = false;
+      let editingProjectId = null;
+
+      // Inicialização
+      document.addEventListener("DOMContentLoaded", () => {
+        console.log("Carregando página de projetos para usuário:", userId);
+        loadUserData();
+        loadProjects();
+        setupEventListeners();
+      });
+
+      // Carregar dados do usuário
+      async function loadUserData() {
+        try {
+          const response = await fetch(`/api/users/${userId}`);
+          if (response.ok) {
+            currentUser = await response.json();
+            renderUserInfo();
+          }
+        } catch (error) {
+          console.error("Erro ao carregar dados do usuário:", error);
+        }
+      }
+
+      // Renderizar informações do usuário
+      function renderUserInfo() {
+        if (!currentUser) return;
+
+        document.getElementById("user-name").textContent =
+          currentUser.name || "Usuário";
+        document.getElementById("user-email").textContent =
+          currentUser.email || "Email não informado";
+
+        const initials = getInitials(currentUser.name || "Usuário");
+        document.getElementById("user-avatar").textContent = initials;
+      }
+
+      // Gerar iniciais
+      function getInitials(name) {
+        return name
+          .split(" ")
+          .map((word) => word.charAt(0).toUpperCase())
+          .slice(0, 2)
+          .join("");
+      }
+
+      // Carregar projetos
+      async function loadProjects() {
+        try {
+          showLoading();
+
+          const response = await fetch(`/api/users/${userId}/projects`);
+
+          if (!response.ok) {
+            throw new Error(`Erro HTTP: ${response.status}`);
+          }
+
+          allProjects = await response.json();
+          console.log("Projetos carregados:", allProjects);
+
+          if (allProjects.length === 0) {
+            showEmptyState();
+          } else {
+            filteredProjects = [...allProjects];
+            await loadProjectsWithTaskCounts();
+            renderStats();
+            renderProjects();
+            showProjectsContent();
+          }
+        } catch (error) {
+          console.error("Erro ao carregar projetos:", error);
+          showErrorState();
+        }
+      }
+
+      // Carregar projetos com contagem de tarefas
+      async function loadProjectsWithTaskCounts() {
+        const projectsWithTasks = await Promise.all(
+          allProjects.map(async (project) => {
+            try {
+              const tasksResponse = await fetch(
+                `/api/users/${userId}/projects/${project.id}/tasks`
+              );
+              if (tasksResponse.ok) {
+                const tasks = await tasksResponse.json();
+                const completedTasks = tasks.filter(
+                  (task) => task.is_completed
+                ).length;
+                return {
+                  ...project,
+                  totalTasks: tasks.length,
+                  completedTasks: completedTasks,
+                  progress:
+                    tasks.length > 0
+                      ? Math.round((completedTasks / tasks.length) * 100)
+                      : 0,
+                };
+              }
+            } catch (error) {
+              console.error(
+                `Erro ao carregar tarefas do projeto ${project.id}:`,
+                error
+              );
+            }
+            return {
+              ...project,
+              totalTasks: 0,
+              completedTasks: 0,
+              progress: 0,
+            };
+          })
+        );
+
+        allProjects = projectsWithTasks;
+        filteredProjects = [...allProjects];
+      }
+
+      // Renderizar estatísticas
+      function renderStats() {
+        const total = allProjects.length;
+        const active = allProjects.filter(
+          (project) => project.project_status === "ativo"
+        ).length;
+        const completed = allProjects.filter(
+          (project) => project.project_status === "concluido"
+        ).length;
+
+        // Calcular projetos atrasados (que têm data de fim passada e não estão concluídos)
+        const today = new Date();
+        const overdue = allProjects.filter((project) => {
+          if (project.project_status === "concluido" || !project.end_date)
+            return false;
+          const endDate = new Date(project.end_date);
+          return endDate < today;
+        }).length;
+
+        animateNumber("total-projects", total);
+        animateNumber("active-projects", active);
+        animateNumber("completed-projects", completed);
+        animateNumber("overdue-projects", overdue);
+      }
+
+      // Animar números
+      function animateNumber(elementId, targetValue) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+
+        const duration = 800;
+        const increment = targetValue / (duration / 50);
+        let currentValue = 0;
+
+        const timer = setInterval(() => {
+          currentValue += increment;
+          if (currentValue >= targetValue) {
+            currentValue = targetValue;
+            clearInterval(timer);
+          }
+          element.textContent = Math.floor(currentValue);
+        }, 50);
+      }
+
+      // Renderizar lista de projetos
+      function renderProjects() {
+        const projectsList = document.getElementById("projects-list");
+        projectsList.innerHTML = "";
+
+        if (filteredProjects.length === 0) {
+          projectsList.innerHTML = `
+            <div class="no-results">
+              <p>Nenhum projeto encontrado com os filtros aplicados.</p>
+            </div>
+          `;
+          return;
+        }
+
+        filteredProjects.forEach((project) => {
+          const projectCard = createProjectCard(project);
+          projectsList.appendChild(projectCard);
+        });
+      }
+
+      // Criar card de projeto
+      function createProjectCard(project) {
+        const projectCard = document.createElement("div");
+        projectCard.className = `project-card ${
+          project.project_status === "concluido" ? "completed" : ""
+        }`;
+        projectCard.setAttribute("data-project-id", project.id);
+
+        const statusClass = getStatusClass(project.project_status);
+        const statusText = getStatusText(project.project_status);
+
+        // Verificar se o projeto está atrasado
+        const isOverdue =
+          project.end_date &&
+          new Date(project.end_date) < new Date() &&
+          project.project_status !== "concluido";
+
+        projectCard.innerHTML = `
+          <div class="project-header">
+            <div class="project-info">
+              <h3 class="project-title">${project.project_name}</h3>
+              <div class="project-status ${statusClass}">
+                <span>${getStatusIcon(project.project_status)}</span>
+                <span>${statusText}</span>
+              </div>
+            </div>
+          </div>
+          
+          ${
+            project.project_description
+              ? `<p class="project-description">${project.project_description}</p>`
+              : ""
+          }
+          
+          <div class="project-details">
+            ${
+              project.end_date
+                ? `
+              <div class="project-date ${isOverdue ? "overdue" : ""}">
+                <span class="date-icon">${isOverdue ? "⚠️" : "📅"}</span>
+                <span>${formatDate(project.end_date)}${
+                    isOverdue ? " (Atrasado)" : ""
+                  }</span>
+              </div>
+            `
+                : ""
+            }
+            
+            <div class="project-tasks-count">
+              <span class="tasks-icon">📋</span>
+              <span>${project.totalTasks || 0} tarefa(s) • ${
+          project.completedTasks || 0
+        } concluída(s)</span>
+            </div>
+          </div>
+
+          ${
+            project.totalTasks > 0
+              ? `
+          <div class="project-progress">
+            <div class="progress-label">
+              <span>Progresso</span>
+              <span>${project.progress}%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: ${project.progress}%"></div>
+            </div>
+          </div>
+          `
+              : ""
+          }
+          
+          <div class="project-actions">
+            <button class="action-btn view-btn" onclick="viewProjectTasks(${
+              project.id
+            })" title="Ver tarefas">
+              <span>👁️</span>
+              <span>Ver Tarefas</span>
+            </button>
+            <button class="action-btn edit-btn" onclick="editProject(${
+              project.id
+            })" title="Editar">
+              <span>✏️</span>
+              <span>Editar</span>
+            </button>
+            <button class="action-btn delete-btn" onclick="deleteProject(${
+              project.id
+            })" title="Excluir">
+              <span>🗑️</span>
+              <span>Excluir</span>
+            </button>
+          </div>
+        `;
+
+        return projectCard;
+      }
+
+      // Funções auxiliares para status
+      function getStatusClass(status) {
+        const classes = {
+          ativo: "status-active",
+          concluido: "status-completed",
+          pausado: "status-on-hold",
+        };
+        return classes[status] || "status-active";
+      }
+
+      function getStatusText(status) {
+        const texts = {
+          ativo: "Ativo",
+          concluido: "Concluído",
+          pausado: "Pausado",
+        };
+        return texts[status] || "Ativo";
+      }
+
+      function getStatusIcon(status) {
+        const icons = {
+          ativo: "🚀",
+          concluido: "✅",
+          pausado: "⏸️",
+        };
+        return icons[status] || "🚀";
+      }
+
+      // Formatar data
+      function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString("pt-BR");
+      }
+
+      // Ver tarefas do projeto
+      function viewProjectTasks(projectId) {
+        window.location.href = `/users/${userId}/projects/${projectId}/tasks`;
+      }
+
+      // Editar projeto
+      function editProject(projectId) {
+        const project = allProjects.find((p) => p.id === projectId);
+        if (!project) return;
+
+        isEditMode = true;
+        editingProjectId = projectId;
+
+        // Preencher formulário
+        document.getElementById("modal-title").textContent = "Editar Projeto";
+        document.getElementById("submit-text").textContent =
+          "Salvar Alterações";
+        document.getElementById("submit-icon").textContent = "💾";
+
+        document.getElementById("project-id").value = project.id;
+        document.getElementById("project-name").value = project.project_name;
+        document.getElementById("project-description").value =
+          project.project_description || "";
+        document.getElementById("project-status").value =
+          project.project_status;
+        document.getElementById("end-date").value = project.end_date || "";
+
+        openProjectModal();
+      }
+
+      // Excluir projeto
+      async function deleteProject(projectId) {
+        if (
+          !confirm(
+            "Tem certeza que deseja excluir este projeto? Todas as tarefas associadas também serão excluídas."
+          )
+        )
+          return;
+
+        try {
+          const response = await fetch(
+            `/api/users/${userId}/projects/${projectId}`,
+            {
+              method: "DELETE",
+            }
+          );
+
+          if (response.ok) {
+            loadProjects();
+            showSuccessToast("Projeto excluído com sucesso!");
+          } else {
+            throw new Error("Erro ao excluir projeto");
+          }
+        } catch (error) {
+          console.error("Erro ao excluir projeto:", error);
+          showErrorToast("Erro ao excluir projeto");
+        }
+      }
+
+      // Controle de estados
+      function showLoading() {
+        hideAllStates();
+        document.getElementById("loading").style.display = "block";
+      }
+
+      function showProjectsContent() {
+        hideAllStates();
+        document.getElementById("projects-content").style.display = "block";
+      }
+
+      function showEmptyState() {
+        hideAllStates();
+        document.getElementById("empty-state").style.display = "block";
+      }
+
+      function showErrorState() {
+        hideAllStates();
+        document.getElementById("error-state").style.display = "block";
+      }
+
+      function hideAllStates() {
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("projects-content").style.display = "none";
+        document.getElementById("empty-state").style.display = "none";
+        document.getElementById("error-state").style.display = "none";
+      }
+
+      // Modal functions
+      function openCreateProjectModal() {
+        isEditMode = false;
+        editingProjectId = null;
+
+        document.getElementById("modal-title").textContent = "Novo Projeto";
+        document.getElementById("submit-text").textContent = "Criar Projeto";
+        document.getElementById("submit-icon").textContent = "✅";
+
+        document.getElementById("project-form").reset();
+        openProjectModal();
+      }
+
+      function openProjectModal() {
+        document.getElementById("project-modal").style.display = "flex";
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeProjectModal() {
+        document.getElementById("project-modal").style.display = "none";
+        document.body.style.overflow = "auto";
+        document.getElementById("project-form").reset();
+      }
+
+      // Filtros e busca
+      function setupEventListeners() {
+        // Filtros
+        document
+          .getElementById("filter-status")
+          .addEventListener("change", applyFilters);
+        document
+          .getElementById("search-projects")
+          .addEventListener("input", applyFilters);
+
+        // Form submit
+        document
+          .getElementById("project-form")
+          .addEventListener("submit", handleFormSubmit);
+
+        // Modal click outside
+        document
+          .getElementById("project-modal")
+          .addEventListener("click", (e) => {
+            if (e.target.id === "project-modal") closeProjectModal();
+          });
+      }
+
+      function applyFilters() {
+        const statusFilter = document.getElementById("filter-status").value;
+        const searchQuery = document
+          .getElementById("search-projects")
+          .value.toLowerCase();
+
+        filteredProjects = allProjects.filter((project) => {
+          // Status filter
+          if (statusFilter !== "all" && project.project_status !== statusFilter)
+            return false;
+
+          // Search filter
+          if (
+            searchQuery &&
+            !project.project_name.toLowerCase().includes(searchQuery) &&
+            !(project.project_description || "")
+              .toLowerCase()
+              .includes(searchQuery)
+          )
+            return false;
+
+          return true;
+        });
+
+        renderProjects();
+      }
+
+      // Submit form
+      async function handleFormSubmit(e) {
+        e.preventDefault();
+
+        const formData = new FormData(e.target);
+
+        const projectData = {
+          project_name: formData.get("project_name"),
+          project_description: formData.get("project_description") || null,
+          end_date: formData.get("end_date") || null,
+          project_status: formData.get("project_status"),
+          user_id: parseInt(userId),
+        };
+
+        try {
+          showModalLoading();
+
+          let response;
+          if (isEditMode) {
+            response = await fetch(
+              `/api/users/${userId}/projects/${editingProjectId}`,
+              {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(projectData),
+              }
+            );
+          } else {
+            response = await fetch(`/api/users/${userId}/projects`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(projectData),
+            });
+          }
+
+          if (response.ok) {
+            closeProjectModal();
+            loadProjects();
+            showSuccessToast(
+              isEditMode ? "Projeto atualizado!" : "Projeto criado!"
+            );
+          } else {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Erro ao salvar projeto");
+          }
+        } catch (error) {
+          console.error("Erro ao salvar projeto:", error);
+          showErrorToast(error.message);
+        } finally {
+          hideModalLoading();
+        }
+      }
+
+      // Modal loading
+      function showModalLoading() {
+        document.getElementById("project-modal-loading").style.display =
+          "block";
+        document.getElementById("submit-project-btn").disabled = true;
+      }
+
+      function hideModalLoading() {
+        document.getElementById("project-modal-loading").style.display = "none";
+        document.getElementById("submit-project-btn").disabled = false;
+      }
+
+      // Toasts
+      function showSuccessToast(message) {
+        showToast(message, "success");
+      }
+
+      function showErrorToast(message) {
+        showToast(message, "error");
+      }
+
+      function showToast(message, type) {
+        const toast = document.createElement("div");
+        toast.className = `toast toast-${type}`;
+        toast.innerHTML = `
+          <span class="toast-icon">${type === "success" ? "✅" : "❌"}</span>
+          <span>${message}</span>
+        `;
+
+        document.body.appendChild(toast);
+        setTimeout(() => toast.classList.add("show"), 100);
+
+        setTimeout(() => {
+          toast.classList.remove("show");
+          setTimeout(() => document.body.removeChild(toast), 300);
+        }, 3000);
+      }
+
+      // Navigation
+      function goToWelcome() {
+        window.location.href = `/users/${userId}`;
+      }
+
+      function goToTasks() {
+        window.location.href = `/users/${userId}/tasks`;
+      }
+    </script>
+  </body>
+</html>

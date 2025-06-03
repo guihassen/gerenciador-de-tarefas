@@ -23,7 +23,7 @@ exports.list = async (_, res) => {
 
 exports.detail = async (req, res) => {
   try {
-    const task = await svc.detail(req.params.id);
+    const task = await svc.detail(req.params.taskId);
     console.log("Tarefa encontrada:", task);
     if (!task) {
       return res.status(404).json({ error: "Tarefa não encontrada" });
@@ -58,7 +58,7 @@ exports.findByProjectId = async (req, res) => {
 
 exports.update = async (req, res) => {
   try {
-    const updatedTask = await svc.update(req.params.id, req.body);
+    const updatedTask = await svc.update(req.params.taskId, req.body);
     console.log("Tarefa atualizada:", updatedTask);
     res.json(updatedTask);
   } catch (e) {
@@ -68,20 +68,17 @@ exports.update = async (req, res) => {
 
 exports.remove = async (req, res) => {
   try {
-    const id = req.params.id;
-    console.log(`Removendo tarefa com ID: ${id}`);
-    await svc.remove(id);
-    console.log(`Tarefa com ID ${id} removida com sucesso`);
-    res.sendStatus(204);
-  } catch (e) {
-    console.error("Erro ao remover tarefa:", e);
-    res.status(500).json({ error: e.message });
+    const { taskId, userId } = req.params;
+    const result = await svc.remove(taskId, userId);
+    res.json({ message: "Tarefa removida com sucesso" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
 
 exports.markAsCompleted = async (req, res) => {
   try {
-    const updatedTask = await svc.markAsCompleted(req.params.id);
+    const updatedTask = await svc.markAsCompleted(req.params.taskId);
     console.log("Tarefa marcada como concluída:", updatedTask);
     res.json(updatedTask);
   } catch (e) {
@@ -92,7 +89,7 @@ exports.markAsCompleted = async (req, res) => {
 
 exports.markAsIncomplete = async (req, res) => {
   try {
-    const updatedTask = await svc.markAsIncomplete(req.params.id);
+    const updatedTask = await svc.markAsIncomplete(req.params.taskId);
     console.log("Tarefa marcada como não concluída:", updatedTask);
     res.json(updatedTask);
   } catch (e) {

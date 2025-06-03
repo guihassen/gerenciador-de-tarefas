@@ -2,343 +2,188 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <title>Documentação da API</title>
-    <style>
-      body {
-        font-family: Arial, Helvetica, sans-serif;
-        max-width: 800px;
-        margin: 2rem auto;
-        line-height: 1.6;
-      }
-      code {
-        background: #f4f4f4;
-        padding: 2px 4px;
-        border-radius: 3px;
-      }
-      h2 {
-        margin-top: 2.2rem;
-      }
-      .endpoint {
-        margin: 0.5rem 0;
-      }
-      .method {
-        font-weight: bold;
-        color: #2563eb;
-      }
-      .example {
-        background: #f8f9fa;
-        padding: 1rem;
-        border-left: 4px solid #2563eb;
-        margin: 1rem 0;
-      }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gerenciador de Tarefas - Selecionar Usuário</title>
+    <link rel="stylesheet" href="/css/main.css" />
   </head>
   <body>
-    <h1>API de Gerenciamento de Tarefas</h1>
-    <p>
-      Esta aplicação expõe endpoints REST para gerenciar usuários, projetos e
-      tarefas em <code>/api/</code>. Todos os endpoints aceitam e devolvem JSON.
-    </p>
+    <div class="container">
+      <header class="header">
+        <h1>Gerenciador de Tarefas</h1>
+        <p class="subtitle">Selecione um usuário para continuar</p>
+      </header>
 
-    <h2>1. Usuários</h2>
-    <div class="endpoint">
-      <span class="method">GET /api/users</span> – lista todos os usuários.
-    </div>
-    <div class="endpoint">
-      <span class="method">POST /api/users</span> – cria um novo usuário.<br />
-      Exemplo de corpo:
-      <code>{"name":"João Silva","email":"joao@exemplo.com"}</code>
-    </div>
-    <div class="endpoint">
-      <span class="method">GET /api/users/:id</span> – obtém detalhes de um
-      usuário específico.
-    </div>
-    <div class="endpoint">
-      <span class="method">PUT /api/users/:id</span> – atualiza um usuário
-      existente.
-    </div>
-    <div class="endpoint">
-      <span class="method">DELETE /api/users/:id</span> – remove um usuário.
-    </div>
-    <div class="endpoint">
-      <span class="method">GET /api/users-totals</span> – retorna
-      estatísticas/totais dos usuários.
-    </div>
+      <main class="main-content">
+        <div id="loading" class="loading">
+          <div class="spinner"></div>
+          <p>Carregando usuários...</p>
+        </div>
 
-    <h2>2. Projetos</h2>
-    <div class="endpoint">
-      <span class="method">GET /api/projects</span> – lista todos os projetos
-      (admin).
-    </div>
-    <div class="endpoint">
-      <span class="method">GET /api/users/:userId/projects</span> – lista
-      projetos de um usuário específico.
-    </div>
-    <div class="endpoint">
-      <span class="method">POST /api/users/:userId/projects</span> – cria um
-      novo projeto para um usuário.<br />
-      Exemplo:
-      <code
-        >{"name":"Projeto Website","description":"Desenvolvimento do site da
-        empresa"}</code
-      >
-    </div>
-    <div class="endpoint">
-      <span class="method">GET /api/users/:userId/projects/:id</span> – obtém
-      detalhes de um projeto específico.
-    </div>
-    <div class="endpoint">
-      <span class="method">PUT /api/users/:userId/projects/:id</span> – atualiza
-      um projeto existente.
-    </div>
-    <div class="endpoint">
-      <span class="method">DELETE /api/users/:userId/projects/:id</span> –
-      remove um projeto.
-    </div>
-    <div class="endpoint">
-      <span class="method"
-        >GET /api/users/:userId/projects/:projectId/tasks</span
-      >
-      – lista tarefas de um projeto específico.
+        <div id="users-container" class="users-container" style="display: none">
+          <div id="users-list" class="users-list">
+            <!-- Os botões dos usuários serão inseridos aqui dinamicamente -->
+          </div>
+        </div>
+
+        <div id="error-message" class="error-message" style="display: none">
+          <p>Erro ao carregar usuários. Tente novamente.</p>
+          <button id="retry-btn" class="retry-btn">Tentar Novamente</button>
+        </div>
+
+        <div id="no-users" class="no-users" style="display: none">
+          <p>Nenhum usuário encontrado.</p>
+          <button id="create-user-btn" class="create-user-btn">
+            Criar Primeiro Usuário
+          </button>
+        </div>
+      </main>
     </div>
 
-    <h2>3. Tarefas</h2>
-    <div class="endpoint">
-      <span class="method">GET /api/tasks</span> – lista todas as tarefas
-      (admin).
-    </div>
-    <div class="endpoint">
-      <span class="method">GET /api/users/:userId/tasks</span> – lista tarefas
-      de um usuário específico.
-    </div>
-    <div class="endpoint">
-      <span class="method">POST /api/users/:userId/tasks</span> – cria uma nova
-      tarefa para um usuário.<br />
-      Exemplo:
-      <code
-        >{"title":"Implementar login","description":"Criar sistema de
-        autenticação","project_id":1}</code
-      >
-    </div>
-    <div class="endpoint">
-      <span class="method">GET /api/users/:userId/tasks/:id</span> – obtém
-      detalhes de uma tarefa específica.
-    </div>
-    <div class="endpoint">
-      <span class="method">PUT /api/users/:userId/tasks/:id</span> – atualiza
-      uma tarefa existente.
-    </div>
-    <div class="endpoint">
-      <span class="method">DELETE /api/users/:userId/tasks/:id</span> – remove
-      uma tarefa.
-    </div>
-    <div class="endpoint">
-      <span class="method">PATCH /api/users/:userId/tasks/:id/complete</span> –
-      marca uma tarefa como concluída.
-    </div>
-    <div class="endpoint">
-      <span class="method">PATCH /api/users/:userId/tasks/:id/incomplete</span>
-      – marca uma tarefa como não concluída.
-    </div>
+    <script>
+      // Elementos do DOM
+      const loadingEl = document.getElementById("loading");
+      const usersContainerEl = document.getElementById("users-container");
+      const usersListEl = document.getElementById("users-list");
+      const errorMessageEl = document.getElementById("error-message");
+      const noUsersEl = document.getElementById("no-users");
+      const retryBtn = document.getElementById("retry-btn");
+      const createUserBtn = document.getElementById("create-user-btn");
 
-    <h2>Exemplos de uso via <em>curl</em></h2>
+      // Estado da aplicação
+      let users = [];
 
-    <div class="example">
-      <h3>Criar um usuário:</h3>
-      <pre>
-curl -X POST http://localhost:3000/api/users \
-     -H "Content-Type: application/json" \
-     -d '{"name":"Maria Santos","email":"maria@exemplo.com"}'</pre
-      >
-    </div>
+      // Função para buscar usuários da API
+      async function fetchUsers() {
+        try {
+          showLoading();
 
-    <div class="example">
-      <h3>Criar um projeto para o usuário ID 1:</h3>
-      <pre>
-curl -X POST http://localhost:3000/api/users/1/projects \
-     -H "Content-Type: application/json" \
-     -d '{"name":"E-commerce","description":"Loja virtual completa"}'</pre
-      >
-    </div>
+          const response = await fetch("/api/users");
 
-    <div class="example">
-      <h3>Criar uma tarefa para o usuário ID 1:</h3>
-      <pre>
-curl -X POST http://localhost:3000/api/users/1/tasks \
-     -H "Content-Type: application/json" \
-     -d '{"title":"Design da homepage","description":"Criar mockup da página inicial","project_id":1}'</pre
-      >
-    </div>
+          if (!response.ok) {
+            throw new Error(`Erro HTTP: ${response.status}`);
+          }
 
-    <div class="example">
-      <h3>Marcar tarefa como concluída:</h3>
-      <pre>
-curl -X PATCH http://localhost:3000/api/users/1/tasks/1/complete</pre
-      >
-    </div>
+          const data = await response.json();
+          users = data;
 
-    <div class="example">
-      <h3>Listar projetos de um usuário:</h3>
-      <pre>curl http://localhost:3000/api/users/1/projects</pre>
-    </div>
+          if (users.length === 0) {
+            showNoUsers();
+          } else {
+            renderUsers();
+            showUsers();
+          }
+        } catch (error) {
+          console.error("Erro ao buscar usuários:", error);
+          showError();
+        }
+      }
 
-    <div class="example">
-      <h3>Listar tarefas de um projeto:</h3>
-      <pre>curl http://localhost:3000/api/users/1/projects/1/tasks</pre>
-    </div>
+      // Função para renderizar os usuários
+      function renderUsers() {
+        usersListEl.innerHTML = "";
 
-    <h2>Estrutura da API</h2>
-    <p>A API segue uma estrutura hierárquica onde:</p>
-    <ul>
-      <li><strong>Usuários</strong> podem ter múltiplos projetos</li>
-      <li>
-        <strong>Projetos</strong> pertencem a um usuário e podem ter múltiplas
-        tarefas
-      </li>
-      <li>
-        <strong>Tarefas</strong> pertencem a um usuário e opcionalmente a um
-        projeto
-      </li>
-    </ul>
+        users.forEach((user) => {
+          const userBtn = createUserButton(user);
+          usersListEl.appendChild(userBtn);
+        });
+      }
 
-    <p>
-      <strong>Nota:</strong> Substitua <code>:userId</code>, <code>:id</code>,
-      <code>:projectId</code> pelos valores numéricos correspondentes nas URLs.
-    </p>
+      // Função para criar botão do usuário
+      function createUserButton(user) {
+        const button = document.createElement("button");
+        button.className = "user-btn";
+        button.onclick = () => selectUser(user);
+
+        // Gerar iniciais do nome para o avatar
+        const initials = getInitials(user.full_name || "Usuário");
+
+        button.innerHTML = `
+                <div class="user-avatar">
+                    ${initials}
+                </div>
+                <div class="user-info">
+                    <h3>${user.full_name || "Nome não informado"}</h3>
+                    <p>${user.email || "Email não informado"}</p>
+                </div>
+            `;
+
+        return button;
+      }
+
+      // Função para gerar iniciais do nome
+      function getInitials(name) {
+        return name
+          .split(" ")
+          .map((word) => word.charAt(0).toUpperCase())
+          .slice(0, 2)
+          .join("");
+      }
+
+      // Função para selecionar usuário
+      function selectUser(user) {
+        console.log("Usuário selecionado:", user);
+
+        // Salvar usuário selecionado no sessionStorage
+        sessionStorage.setItem("selectedUser", JSON.stringify(user));
+
+        // Redirecionar para a página de boas-vindas do usuário
+        window.location.href = `/users/${user.id}`;
+      }
+
+      // Funções para controle de exibição
+      function showLoading() {
+        hideAllSections();
+        loadingEl.style.display = "block";
+      }
+
+      function showUsers() {
+        hideAllSections();
+        usersContainerEl.style.display = "block";
+      }
+
+      function showError() {
+        hideAllSections();
+        errorMessageEl.style.display = "block";
+      }
+
+      function showNoUsers() {
+        hideAllSections();
+        noUsersEl.style.display = "block";
+      }
+
+      function hideAllSections() {
+        loadingEl.style.display = "none";
+        usersContainerEl.style.display = "none";
+        errorMessageEl.style.display = "none";
+        noUsersEl.style.display = "none";
+      }
+
+      // Event listeners
+      retryBtn.addEventListener("click", fetchUsers);
+
+      createUserBtn.addEventListener("click", () => {
+        // Redirecionar para página de criação de usuário
+        alert("Redirecionando para criação de usuário...");
+        // window.location.href = '/create-user';
+      });
+
+      // Função para recarregar a página
+      function refreshPage() {
+        fetchUsers();
+      }
+
+      // Inicializar a aplicação quando a página carregar
+      document.addEventListener("DOMContentLoaded", () => {
+        console.log("Página carregada, buscando usuários...");
+        fetchUsers();
+      });
+
+      // Adicionar listener para recarregar quando a página ficar visível novamente
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) {
+          refreshPage();
+        }
+      });
+    </script>
   </body>
 </html>
-
-<h1 id="c3">3. Uso da API</h1>
-
-<p>
-  A aplicação expõe uma API RESTful para gerenciar usuários, projetos e tarefas.
-  Todos os endpoints estão disponíveis sob o caminho base <code>/api/</code> e
-  trabalham com requisições e respostas no formato JSON.
-</p>
-
-<h2>3.1. Usuários</h2>
-<ul>
-  <li><strong>GET /api/users</strong> – Lista todos os usuários.</li>
-  <li>
-    <strong>POST /api/users</strong> – Cria um novo usuário.<br />
-    Exemplo de corpo:
-    <pre><code>{
-  "name": "João Silva",
-  "email": "joao@exemplo.com"
-}</code></pre>
-  </li>
-  <li><strong>GET /api/users/:id</strong> – Detalha um usuário.</li>
-  <li><strong>PUT /api/users/:id</strong> – Atualiza um usuário.</li>
-  <li><strong>DELETE /api/users/:id</strong> – Remove um usuário.</li>
-  <li><strong>GET /api/users-totals</strong> – Estatísticas de usuários.</li>
-</ul>
-
-<h2>3.2. Projetos</h2>
-<ul>
-  <li><strong>GET /api/projects</strong> – Lista todos os projetos (admin).</li>
-  <li>
-    <strong>GET /api/users/:userId/projects</strong> – Lista projetos do
-    usuário.
-  </li>
-  <li>
-    <strong>POST /api/users/:userId/projects</strong> – Cria um novo projeto.<br />
-    Exemplo:
-    <pre><code>{
-  "name": "Projeto Website",
-  "description": "Desenvolvimento do site da empresa"
-}</code></pre>
-  </li>
-  <li>
-    <strong>GET /api/users/:userId/projects/:id</strong> – Detalha um projeto.
-  </li>
-  <li>
-    <strong>PUT /api/users/:userId/projects/:id</strong> – Atualiza um projeto.
-  </li>
-  <li>
-    <strong>DELETE /api/users/:userId/projects/:id</strong> – Remove um projeto.
-  </li>
-  <li>
-    <strong>GET /api/users/:userId/projects/:projectId/tasks</strong> – Lista
-    tarefas de um projeto.
-  </li>
-</ul>
-
-<h2>3.3. Tarefas</h2>
-<ul>
-  <li><strong>GET /api/tasks</strong> – Lista todas as tarefas (admin).</li>
-  <li>
-    <strong>GET /api/users/:userId/tasks</strong> – Lista tarefas do usuário.
-  </li>
-  <li>
-    <strong>POST /api/users/:userId/tasks</strong> – Cria nova tarefa.<br />
-    Exemplo:
-    <pre><code>{
-  "title": "Implementar login",
-  "description": "Criar sistema de autenticação",
-  "project_id": 1
-}</code></pre>
-  </li>
-  <li>
-    <strong>GET /api/users/:userId/tasks/:id</strong> – Detalha uma tarefa.
-  </li>
-  <li>
-    <strong>PUT /api/users/:userId/tasks/:id</strong> – Atualiza uma tarefa.
-  </li>
-  <li>
-    <strong>DELETE /api/users/:userId/tasks/:id</strong> – Remove uma tarefa.
-  </li>
-  <li>
-    <strong>PATCH /api/users/:userId/tasks/:id/complete</strong> – Marca como
-    concluída.
-  </li>
-  <li>
-    <strong>PATCH /api/users/:userId/tasks/:id/incomplete</strong> – Marca como
-    não concluída.
-  </li>
-</ul>
-
-<h2>3.4. Exemplos com <em>curl</em></h2>
-<pre><code># Criar um usuário
-curl -X POST http://localhost:3000/api/users \
-     -H "Content-Type: application/json" \
-     -d '{"name":"Maria Santos","email":"maria@exemplo.com"}'
-
-# Criar projeto para o usuário ID 1
-curl -X POST http://localhost:3000/api/users/1/projects \
-     -H "Content-Type: application/json" \
-     -d '{"name":"E-commerce","description":"Loja virtual completa"}'
-
-# Criar tarefa para o usuário ID 1
-curl -X POST http://localhost:3000/api/users/1/tasks \
-     -H "Content-Type: application/json" \
-     -d '{"title":"Design da homepage","description":"Criar mockup da página inicial","project_id":1}'
-
-# Marcar tarefa como concluída
-curl -X PATCH http://localhost:3000/api/users/1/tasks/1/complete
-
-# Listar projetos de um usuário
-curl http://localhost:3000/api/users/1/projects
-
-# Listar tarefas de um projeto
-curl http://localhost:3000/api/users/1/projects/1/tasks
-</code></pre>
-
-<h2>3.5. Estrutura da API</h2>
-<ul>
-  <li>
-    <strong>Usuários</strong> podem ter múltiplos <strong>projetos</strong>.
-  </li>
-  <li>
-    <strong>Projetos</strong> pertencem a um usuário e têm várias
-    <strong>tarefas</strong>.
-  </li>
-  <li>
-    <strong>Tarefas</strong> pertencem a um usuário e, opcionalmente, a um
-    projeto.
-  </li>
-</ul>
-
-<p>
-  <strong>Nota:</strong> Substitua <code>:userId</code>, <code>:id</code> e
-  <code>:projectId</code> pelos valores reais nas URLs.
-</p>

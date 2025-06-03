@@ -2,18 +2,24 @@ const express = require("express");
 const path = require("path");
 const router = express.Router();
 
-// Rota principal
 router.get("/", (req, res) => {
-  res.render("pages/main");
+  res.render("../views/pages/main.ejs");
 });
 
-// Usa as rotas de usuário em /api
+router.get("/users/:id", (req, res) => {
+  res.render("../views/pages/welcome.ejs");
+});
+
+router.get("/users/:userId/tasks", (req, res) => {
+  res.render("../views/pages/tasks.ejs");
+});
+
+router.get("/users/:userId/projects", (req, res) => {
+  res.render("../views/pages/projects.ejs");
+});
+
 router.use("/api", require("../routes/userRoutes.js"));
-
-// Usa as rotas de projetos em /api
 router.use("/api", require("../routes/projectRoutes.js"));
-
-// Usa as rotas de tarefas em /api
 router.use("/api", require("../routes/taskRoutes.js"));
 
 module.exports = router;
