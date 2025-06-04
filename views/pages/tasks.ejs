@@ -239,8 +239,50 @@
       let isEditMode = false;
       let editingTaskId = null;
 
+      // Adicionar CSS para informações do projeto
+      function addProjectInfoCSS() {
+        // Verificar se o CSS já foi adicionado
+        if (document.getElementById("project-info-css")) return;
+
+        const style = document.createElement("style");
+        style.id = "project-info-css";
+        style.textContent = `
+          .task-project-info {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+            padding: 4px 8px;
+            background-color: #e0f2fe;
+            border-radius: 6px;
+            border-left: 3px solid #0284c7;
+            font-size: 0.875rem;
+          }
+
+          .task-project-info .project-icon {
+            font-size: 14px;
+          }
+
+          .task-project-info .project-name {
+            color: #0369a1;
+            font-weight: 500;
+          }
+
+          .task-card.completed .task-project-info {
+            background-color: #f1f5f9;
+            border-left-color: #94a3b8;
+          }
+
+          .task-card.completed .task-project-info .project-name {
+            color: #64748b;
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
       // Inicialização
       document.addEventListener("DOMContentLoaded", () => {
+        addProjectInfoCSS(); // Adicionar CSS
         console.log("Carregando página de tarefas para usuário:", userId);
         loadUserData();
         loadTasks();
@@ -282,19 +324,47 @@
           .join("");
       }
 
-      // Carregar tarefas
+      // Carregar tarefas (versão modificada para incluir nomes dos projetos)
       async function loadTasks() {
         try {
           showLoading();
 
-          const response = await fetch(`/api/users/${userId}/tasks`);
+          // Buscar tarefas
+          const tasksResponse = await fetch(`/api/users/${userId}/tasks`);
+          if (!tasksResponse.ok) {
+            throw new Error(`Erro HTTP: ${tasksResponse.status}`);
+          }
+          allTasks = await tasksResponse.json();
+          console.log("Tarefas carregadas:", allTasks);
 
-          if (!response.ok) {
-            throw new Error(`Erro HTTP: ${response.status}`);
+          // Buscar projetos para associar os nomes
+          const projectsResponse = await fetch(`/api/users/${userId}/projects`);
+          let projects = [];
+          if (projectsResponse.ok) {
+            projects = await projectsResponse.json();
+            console.log("Projetos carregados:", projects);
           }
 
-          allTasks = await response.json();
-          console.log("Tarefas carregadas:", allTasks);
+          // Associar nomes dos projetos às tarefas
+          allTasks = allTasks.map((task) => {
+            if (task.project_id) {
+              const project = projects.find((p) => p.id === task.project_id);
+              if (project) {
+                task.project_name = project.project_name;
+                console.log(
+                  `Tarefa "${task.task_name}" associada ao projeto "${project.project_name}"`
+                );
+              } else {
+                task.project_name = `Projeto #${task.project_id}`;
+                console.log(
+                  `Projeto ID ${task.project_id} não encontrado para tarefa "${task.task_name}"`
+                );
+              }
+            }
+            return task;
+          });
+
+          console.log("Tarefas com projetos associados:", allTasks);
 
           if (allTasks.length === 0) {
             showEmptyState();
@@ -365,7 +435,7 @@
         });
       }
 
-      // Criar card de tarefa
+      // Criar card de tarefa (versão final)
       function createTaskCard(task) {
         const taskCard = document.createElement("div");
         taskCard.className = `task-card ${
@@ -393,6 +463,14 @@
                     ? `<p class="task-description">${task.task_description}</p>`
                     : ""
                 }
+                ${
+                  task.project_name
+                    ? `<div class="task-project-info">
+                        <span class="project-icon">📁</span>
+                        <span class="project-name">${task.project_name}</span>
+                      </div>`
+                    : ""
+                }
               </div>
               <div class="task-priority ${priorityClass}">
                 <span class="priority-icon">${priorityIcon}</span>
@@ -409,17 +487,6 @@
                   <span>${formatDate(task.due_date)}${
                       task.due_time ? ` às ${task.due_time}` : ""
                     }</span>
-                </div>
-              `
-                  : ""
-              }
-              
-              ${
-                task.project_name
-                  ? `
-                <div class="task-project">
-                  <span class="project-icon">📁</span>
-                  <span>${task.project_name}</span>
                 </div>
               `
                   : ""
@@ -442,13 +509,6 @@
         `;
 
         return taskCard;
-
-        // ADICIONE estas linhas ANTES do return taskCard; na função createTaskCard
-        console.log("Criando card para tarefa:", {
-          id: task.id,
-          name: task.task_name,
-          tipoId: typeof task.id,
-        });
       }
 
       // Funções auxiliares para prioridade

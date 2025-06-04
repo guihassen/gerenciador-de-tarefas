@@ -205,7 +205,7 @@
 
     <script>
       // Variáveis globais
-      const userId = window.location.pathname.split("/")[2]; // /users/1/projects -> userId = 1
+      const userId = window.location.pathname.split("/")[2];
       let currentUser = null;
       let allProjects = [];
       let filteredProjects = [];
@@ -616,18 +616,16 @@
         renderProjects();
       }
 
-      // Submit form - Baseado EXATAMENTE no modelo Joi
       async function handleFormSubmit(e) {
         e.preventDefault();
 
         const formData = new FormData(e.target);
 
-        // Dados baseados EXATAMENTE no projectModel.js
         const projectData = {
           project_name: formData.get("project_name"),
           description: formData.get("description") || null,
           project_status: formData.get("project_status"),
-          is_active: true, // Sempre true para novos projetos
+          is_active: true,
           user_id: parseInt(userId),
         };
 

@@ -72,9 +72,6 @@
             <button class="link-btn" onclick="changeUser()">
               🔄 Trocar de Usuário
             </button>
-            <button class="link-btn" onclick="editProfile()">
-              ⚙️ Editar Perfil
-            </button>
           </div>
         </div>
 
@@ -357,11 +354,6 @@
         window.location.href = "/";
       }
 
-      function editProfile() {
-        alert("Redirecionando para edição de perfil...");
-        // window.location.href = `/users/${userId}/edit`;
-      }
-
       function retryLoad() {
         loadUserData();
       }
@@ -496,7 +488,7 @@
             taskData.project_id = parseInt(projectId);
           }
 
-          console.log("Dados enviados:", taskData); // DEBUG
+          console.log("Dados enviados:", taskData);
 
           try {
             showTaskLoading();
