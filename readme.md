@@ -1,26 +1,22 @@
-<h1>📋 Gerenciador de Tarefas</h1>
+# 📋 Gerenciador de Tarefas
 
-  <p>Um sistema simples de gerenciamento de tarefas (To-do list) desenvolvido com JavaScript no frontend, Node.js no backend e banco de dados PostgreSQL via Supabase.</p>
+Um sistema simples de gerenciamento de tarefas (To-do list) desenvolvido com JavaScript no frontend, Node.js no backend e banco de dados PostgreSQL via Supabase.
 
-  <h2>🚀 Funcionalidades</h2>
-  <ul>
-    <li>✅ Criar, ler, atualizar e deletar tarefas</li>
-    <li>🕒 Marcar tarefas como concluídas ou pendentes</li>
-    <li>🔍 Filtrar tarefas por status</li>
-    <li>🔒 Autenticação de usuários com Supabase</li>
-   
-  </ul>
+## 🚀 Funcionalidades
 
-  <h2>🛠️ Tecnologias Utilizadas</h2>
-  <ul>
-    <li><strong>Frontend:</strong> HTML, CSS, JavaScript</li>
-    <li><strong>Backend:</strong> Node.js (Express)</li>
-    <li><strong>Banco de Dados:</strong> PostgreSQL (via <a href="https://supabase.io" target="_blank">Supabase</a>)</li>
-    <li><strong>Hospedagem/Serviços:</strong> Supabase Auth e Supabase DB</li>
-  </ul>
+- ✅ Criar, ler, atualizar e deletar tarefas
+- 🕒 Marcar tarefas como concluídas ou pendentes
+- 🔍 Filtrar tarefas por status
+- 🔒 Autenticação de usuários com Supabase
 
+## 🛠️ Tecnologias Utilizadas
 
-
+- **Frontend:** HTML, CSS, JavaScript, EJS (template engine)
+- **Backend:** Node.js (Express)
+- **Banco de Dados:** PostgreSQL (via [Supabase](https://supabase.io))
+- **Hospedagem/Serviços:** Supabase Auth e Supabase DB
+- **Validação:** Joi
+- **Testes:** Jest, Supertest
 
 ## 📁 Estrutura de Pastas
 
@@ -48,47 +44,132 @@ gerenciador-de-tarefas/
 └── server.js            # Arquivo principal do servidor
 ```
 
+## 📋 Dependências do Projeto
 
+### Dependências de Produção
 
+- **dotenv** (^10.0.0) - Gerenciamento de variáveis de ambiente
+- **ejs** (^3.1.10) - Template engine para renderização de views
+- **express** (^4.21.2) - Framework web para Node.js
+- **joi** (^17.13.3) - Validação de dados
+- **pg** (^8.16.0) - Cliente PostgreSQL para Node.js
 
+### Dependências de Desenvolvimento
 
-<h2>📦 Como Rodar o Projeto Localmente</h2>
+- **jest** (^27.0.6) - Framework de testes
+- **nodemon** (^2.0.22) - Reinicialização automática do servidor durante desenvolvimento
+- **supertest** (^6.1.3) - Testes de integração para APIs HTTP
 
-1. **Clone o repositório**:
-   ```bash
-   git clone https://github.com/guihassen/gerenciador-de-tarefas
-   cd gerenciador-de-tarefas
+## 📦 Como Rodar o Projeto Localmente
 
-2. **Instale as dependências: Certifique-se de que você tem o Node.js instalado. Em seguida, execute:**
+### 1. **Clone o repositório**
+
+```bash
+git clone https://github.com/guihassen/gerenciador-de-tarefas
+cd gerenciador-de-tarefas
+```
+
+### 2. **Instale as dependências**
+
+Certifique-se de que você tem o Node.js instalado. Em seguida, escolha uma das opções abaixo:
+
+#### Instalar todas as dependências :
+
 ```bash
 npm install
 ```
 
-3. **Configure as variáveis de ambiente: Crie um arquivo .env na raiz do projeto (se ainda não existir) e configure as variáveis de ambiente , com os dados da seu banco de dados no supabase,conforme o exemplo abaixo:**
+#### Instalar as dependências de produção:
+
 ```bash
-DB_USER= "seu_usuario"
-DB_HOST= "seu_host"
-DB_DATABASE= "seu_banco"
-DB_PASSWORD= "sua_senha"
-DB_PORT= "sua_porta"
-DB_SSL= "true"
-PORT= 3000
+npm install dotenv pg ejs express joi
 ```
 
-4. **Execute o script de inicialização do banco de dados: Certifique-se de que o banco de dados PostgreSQL está configurado e rodando. Depois, execute o script SQL para criar as tabelas:**
+#### Instalar ad dependências de desenvolvimento (opcional):
+
+```bash
+npm install jest nodemon supertest
+```
+
+### 3. **Configure as variáveis de ambiente**
+
+Crie um arquivo `.env` na raiz do projeto (se ainda não existir) e configure as variáveis de ambiente com os dados do seu banco de dados no Supabase, conforme o exemplo abaixo:
+
+```bash
+DB_USER="seu_usuario"
+DB_HOST="seu_host"
+DB_DATABASE="seu_banco"
+DB_PASSWORD="sua_senha"
+DB_PORT="sua_porta"
+DB_SSL="true"
+PORT=3000
+```
+
+### 4. **Execute o script de inicialização do banco de dados**
+
+Certifique-se de que o banco de dados PostgreSQL está configurado e rodando. Depois, execute o script SQL para criar as tabelas:
+
+```bash
+npm run init-db
+```
+
+ou
+
 ```bash
 node scripts/runSQLScript.js
-``` 
-5. **Inicie o servidor: Execute o comando abaixo para iniciar o servidor:**
+```
+
+### 5. **Inicie o servidor**
+
+Para desenvolvimento (com auto-reload):
+
+```bash
+npm run dev
+```
+
+Para produção:
+
 ```bash
 npm start
 ```
-6.**Acesse a aplicação: Abra o navegador e acesse:**
+
+### 6. **Acesse a aplicação**
+
+Abra o navegador e acesse:
+
 ```bash
 http://localhost:3000
-``` 
+```
 
-7.**Testes (opcional): Para rodar os testes, execute:**
+### 7. **Testes (opcional)**
+
+Para rodar os testes:
+
 ```bash
 npm test
 ```
+
+Para rodar os testes com coverage:
+
+```bash
+npm run test:coverage
+```
+
+## 🎯 Scripts Disponíveis
+
+- `npm start` - Inicia o servidor em modo produção
+- `npm run dev` - Inicia o servidor em modo desenvolvimento com nodemon
+- `npm test` - Executa os testes
+- `npm run test:coverage` - Executa os testes com relatório de cobertura
+- `npm run init-db` - Inicializa o banco de dados
+- `npm run migration` - Executa migrações do banco de dados
+
+## 📝 Licença
+
+Este projeto está sob a licença ISC.
+
+## 🔗 Links Úteis
+
+- [Repositório no GitHub](https://github.com/guihassen/gerenciador-de-tarefas)
+- [Issues/Bugs](https://github.com/guihassen/gerenciador-de-tarefas/issues)
+- [Supabase](https://supabase.io)
