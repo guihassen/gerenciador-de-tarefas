@@ -164,6 +164,19 @@ npm run test:coverage
 - `npm run init-db` - Inicializa o banco de dados
 - `npm run migration` - Executa migrações do banco de dados
 
+## Demonstração
+
+<img src="assets/tela-principal.png" style="width: 650px; height: 500px">
+<img src="assets/dashboard-usuario.png" style="width: 650px; height: 500px">
+<img src="assets/tela-tarefas.png" style="width: 650px; height: 500px">
+<img src="assets/tela-projetos.png" style="width: 650px; height: 500px">
+
+**Links Explicativos**
+
+-Link Video Demonstrativo: https://youtu.be/Ce6tmFRiK5o
+
+-Link Video Explicativo do código e estrutura: https://youtu.be/e2LrGWlYV0g
+
 ## 📝 Licença
 
 Este projeto está sob a licença ISC.
